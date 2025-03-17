@@ -36,43 +36,49 @@ class ApiGatewayController extends Controller
 
     private function forwardRequest($serviceKey, $endpoint, Request $request)
     {
-        // Ensure the service URL exists
         if (!isset($this->services[$serviceKey]) || empty($this->services[$serviceKey])) {
             return response()->json(['error' => 'Service URL not configured'], 500);
         }
 
-        $url = $this->services[$serviceKey] . '/' . $endpoint;
+        $url = rtrim($this->services[$serviceKey], '/') . '/' . ltrim($endpoint, '/');
+        
+        // Log method and URL
+        Log::info("Forwarding request", [
+            'method' => $request->method(),
+            'url' => $url,
+            'headers' => $request->headers->all(),
+            'query' => $request->query(),
+            'body' => $request->all()
+        ]);
 
         try {
-            // Log the request method and headers for debugging
-            Log::info("Forwarding request", [
-                'method' => $request->method(),
-                'url' => $url,
-                'headers' => $request->headers->all(),
-                'query' => $request->query(),
-                'body' => $request->all()
-            ]);
+            // Use a basic GET request first (works as per your test)
+            if ($request->method() === 'GET') {
+                $response = Http::withHeaders([
+                    'Accept' => 'application/json',
+                ])->get($url, $request->query());
+            } else {
+                // Forward request with proper method, headers, and body
+                $response = Http::withHeaders($request->headers->all())
+                    ->send($request->method(), $url, [
+                        'query' => $request->query(),
+                        'body' => $request->getContent(), // Change to `body`
+                    ]);
+            }
 
-            // Use withHeaders for request forwarding
-            $response = Http::withHeaders($request->headers->all())
-                ->send($request->method(), $url, [
-                    'query' => $request->query(),
-                    'json' => $request->method() === 'POST' ? $request->all() : null, // only send JSON for POST requests
-                ]);
-
-            // Optionally log the response
-            Log::info("Forwarded request response", [
+            // Log response
+            Log::info("Response received", [
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'headers' => $response->headers(),
+                'body' => $response->body()
             ]);
 
             return response($response->body(), $response->status())
                 ->withHeaders($response->headers());
         } catch (\Exception $e) {
-            // Log the error for further debugging
             Log::error("Error forwarding request to $url: " . $e->getMessage());
             return response()->json(['error' => 'Service request failed'], 500);
         }
     }
-    
+
 }
