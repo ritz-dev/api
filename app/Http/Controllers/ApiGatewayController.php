@@ -43,19 +43,27 @@ class ApiGatewayController extends Controller
 
         $url = $this->services[$serviceKey] . '/' . $endpoint;
 
-        return Http::get($url);
-
         try {
+            // Log the request method and headers for debugging
+            Log::info("Forwarding request", [
+                'method' => $request->method(),
+                'url' => $url,
+                'headers' => $request->headers->all(),
+                'query' => $request->query(),
+                'body' => $request->all()
+            ]);
+
+            // Use withHeaders for request forwarding
             $response = Http::withHeaders($request->headers->all())
                 ->send($request->method(), $url, [
                     'query' => $request->query(),
-                    'json' => $request->all(),
+                    'json' => $request->method() === 'POST' ? $request->all() : null, // only send JSON for POST requests
                 ]);
 
-            // Optionally log the request and response for debugging
-            Log::info("Forwarded request to $url", [
-                'request' => $request->all(),
-                'response' => $response->body(),
+            // Optionally log the response
+            Log::info("Forwarded request response", [
+                'status' => $response->status(),
+                'body' => $response->body(),
             ]);
 
             return response($response->body(), $response->status())
@@ -66,4 +74,5 @@ class ApiGatewayController extends Controller
             return response()->json(['error' => 'Service request failed'], 500);
         }
     }
+    
 }
