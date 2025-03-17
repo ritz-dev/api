@@ -43,6 +43,8 @@ class ApiGatewayController extends Controller
 
         $url = $this->services[$serviceKey] . '/' . $endpoint;
 
+        return Http::get($url);
+
         try {
             $response = Http::withHeaders($request->headers->all())
                 ->send($request->method(), $url, [
