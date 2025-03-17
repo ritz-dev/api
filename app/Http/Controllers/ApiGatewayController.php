@@ -41,7 +41,7 @@ class ApiGatewayController extends Controller
             return response()->json(['error' => 'Service URL not configured'], 500);
         }
 
-        return $url = $this->services[$serviceKey] . '/' . $endpoint;
+        $url = $this->services[$serviceKey] . '/' . $endpoint;
 
         try {
             $response = Http::withHeaders($request->headers->all())
