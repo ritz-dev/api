@@ -7,11 +7,16 @@ use Illuminate\Support\Facades\Http;
 
 class ApiGatewayController extends Controller
 {
-    protected $services = [
-        'user-management' => 'http://user_server/gateway',
-        'academic' => 'http://academic_server/gateway',
-        'finance'=> 'http://finance_server/gateway',
-    ];
+    protected $services;
+
+    public function __construct()
+    {
+        $this->services = [
+            'user-management' => env('USER_MANAGEMENT_URL'),
+            'academic' => env('ACADEMIC_URL'),
+            'finance' => env('FINANCE_URL'),
+        ];
+    }
 
     public function handleUserManagementService(Request $request, $endpoint)
     {
