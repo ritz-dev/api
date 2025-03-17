@@ -26,7 +26,8 @@ class ApiGatewayController extends Controller
 
     public function handleAcademicService(Request $request, $endpoint)
     {
-        return $this->forwardRequest('academic', $endpoint, $request);
+        return 'academic';
+        // return $this->forwardRequest('academic', $endpoint, $request);
     }
 
     public function handleFinanceService(Request $request, $endpoint)

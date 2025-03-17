@@ -27,9 +27,6 @@ Route::prefix('finance')->group(function () {
 });
 
 Route::prefix('academic')->group(function () {
-    Route::get('/', function () {
-        return 'hello';
-    });
     Route::any('{endpoint}', [ApiGatewayController::class, 'handleAcademicService'])->where('endpoint', '.*');
 });
 
