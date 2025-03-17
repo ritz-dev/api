@@ -26,8 +26,7 @@ class ApiGatewayController extends Controller
 
     public function handleAcademicService(Request $request, $endpoint)
     {
-        return 'academic';
-        // return $this->forwardRequest('academic', $endpoint, $request);
+        return $this->forwardRequest('academic', $endpoint, $request);
     }
 
     public function handleFinanceService(Request $request, $endpoint)
@@ -42,7 +41,7 @@ class ApiGatewayController extends Controller
             return response()->json(['error' => 'Service URL not configured'], 500);
         }
 
-        $url = $this->services[$serviceKey] . '/' . $endpoint;
+        return $url = $this->services[$serviceKey] . '/' . $endpoint;
 
         try {
             $response = Http::withHeaders($request->headers->all())
