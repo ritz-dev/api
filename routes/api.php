@@ -19,11 +19,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/users', function () {
-    $user = User::all();
-    return response()->json($user);
-});
-
 Route::post('/login',[AuthController::class,'login']);
 
 Route::post('/register',[AuthController::class,'register']);
@@ -32,16 +27,15 @@ Route::prefix('finance')->group(function () {
     Route::any('{endpoint}', [ApiGatewayController::class, 'handleFinanceService'])->where('endpoint', '.*');
 });
 
-Route::prefix('academic')->group(function () {
-    Route::any('{endpoint}', [ApiGatewayController::class, 'handleAcademicService'])->where('endpoint', '.*');
-});
-
 Route::middleware('auth:api')->group(function(){
 
     Route::prefix('user-management')->group(function () {
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleUserManagementService'])->where('endpoint', '.*');
     });
    
+    Route::prefix('academic')->group(function () {
+        Route::any('{endpoint}', [ApiGatewayController::class, 'handleAcademicService'])->where('endpoint', '.*');
+    });
 
     Route::prefix('finance')->group(function () {
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleFinanceService'])->where('endpoint', '.*');
