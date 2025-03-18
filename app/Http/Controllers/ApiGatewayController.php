@@ -59,8 +59,12 @@ class ApiGatewayController extends Controller
                 ])->get($url, $request->query());
             } else {
                 // Forward request with proper method, headers, and body
+                // $response = Http::withHeaders($request->headers->all())
+                //     ->put('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
                 $response = Http::withHeaders($request->headers->all())
-                    ->post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
+                    ->send($request->method(), 'https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post', [
+                        'json' => $request->all(), // Send request body
+                    ]);
             }
 
             // Log response
