@@ -12,10 +12,16 @@ use App\Http\Controllers\APIs\TeacherController;
 use App\Http\Controllers\APIs\EmployeeController;
 use App\Http\Controllers\APIs\PersonalController;
 
+use App\Models\User;
 
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/users', function () {
+    $user = User::all();
+    return response()->json($user);
 });
 
 Route::post('/login',[AuthController::class,'login']);
