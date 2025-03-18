@@ -43,6 +43,7 @@ Route::middleware('auth:api')->group(function(){
 
     Route::post('/logout',[AuthController::class,'logout']);
     Route::get('/me',[AuthController::class,'me']);
+    Route::post('/me',[AuthController::class,'me']);
 
     // user
     Route::prefix('users')->group(function(){
