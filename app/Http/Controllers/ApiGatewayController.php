@@ -51,8 +51,6 @@ class ApiGatewayController extends Controller
             'body' => $request->all()
         ]);
 
-        logger($url);
-
         try {
             // Use a basic GET request first (works as per your test)
             if ($request->method() === 'GET') {
@@ -62,8 +60,8 @@ class ApiGatewayController extends Controller
             } else {
                 // Forward request with proper method, headers, and body
                 $response = Http::withHeaders($request->headers->all())
-                    ->post($url, [
-                        'body' => $request->getContent(), // Change to `body`
+                    ->send($request->method(), 'https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post', [
+                        'query' => $request->query(),
                     ]);
             }
 
@@ -74,7 +72,7 @@ class ApiGatewayController extends Controller
                 'body' => $response->body()
             ]);
 
-            return response($response->json(), $response->status())
+            return response($response->body(), $response->status())
                 ->withHeaders($response->headers());
         } catch (\Exception $e) {
             Log::error("Error forwarding request to $url: " . $e->getMessage());
