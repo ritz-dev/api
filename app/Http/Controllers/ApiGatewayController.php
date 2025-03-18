@@ -55,7 +55,11 @@ class ApiGatewayController extends Controller
         // Merge headers and ensure Accept is set
         $httpClient = Http::withHeaders(array_merge(
             $request->headers->all(),
-            ['Accept' => 'application/json']
+            [
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Authorization' => $request->header('Authorization') ?? ''
+            ]
         ));
 
         switch ($request->method()) {
