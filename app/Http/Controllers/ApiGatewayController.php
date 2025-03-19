@@ -97,18 +97,18 @@ class ApiGatewayController extends Controller
         //     return response()->json(['error' => 'Service request failed'], 500);
         // }
 
-         Log::info("API Gatwway Controller Log");
+        // Log::info("API Gatwway Controller Log");
 
-        $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
+        // $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
 
-         // Log response
-         Log::info("Response received", [
-            'status' => $response->status(),
-            'headers' => $response->headers(),
-            'body' => $response->body()
-        ]);
+        //  // Log response
+        //  Log::info("Response received", [
+        //     'status' => $response->status(),
+        //     'headers' => $response->headers(),
+        //     'body' => $response->body()
+        // ]);
 
-        $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post', [
+        $response = Http::post($url, [
             'email' => 'user@example.com',
             'password' => 'securepassword',
         ]);
@@ -123,6 +123,8 @@ class ApiGatewayController extends Controller
                 'data' => $data
             ]);
             // Handle successful authentication
+
+            return response($response->body(), $response->status());
         } else {
             // Handle authentication failure
             $error = $response->json('error');
@@ -133,6 +135,8 @@ class ApiGatewayController extends Controller
                 'body' => $response->body(),
                 'error' => $error
             ]);
+
+            return response()->json(['error' => 'Service request failed'], 500);
         }
 
     }
