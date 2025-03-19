@@ -99,7 +99,7 @@ class ApiGatewayController extends Controller
 
          Log::info("API Gatwway Controller Log");
 
-        $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
+        $response = Http::post($url, $request->all());
 
          // Log response
          Log::info("Response received", [
