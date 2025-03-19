@@ -34,110 +34,88 @@ class ApiGatewayController extends Controller
         return $this->forwardRequest('finance', $endpoint, $request);
     }
 
+    // private function forwardRequest($serviceKey, $endpoint, Request $request)
+    // {
+    //     if (!isset($this->services[$serviceKey]) || empty($this->services[$serviceKey])) {
+    //         return response()->json(['error' => 'Service URL not configured'], 500);
+    //     }
+
+    //     $url = rtrim($this->services[$serviceKey], '/') . '/' . ltrim($endpoint, '/');
+        
+    //     Log::info("Request", $request->all());
+
+    //     $response = Http::post($url, $request->all());
+        
+    //     if ($response->successful()) {
+    //         $data = $response->json();
+
+    //         Log::info("Response received", [
+    //             'status' => $response->status(),
+    //             'headers' => $response->headers(),
+    //             'body' => $response->body(),
+    //             'data' => $data
+    //         ]);
+    //         // Handle successful authentication
+
+    //         return response($response->body(), $response->status());
+    //     } else {
+    //         // Handle authentication failure
+    //         $error = $response->json('error');
+    //         // Log or display the error message
+    //         Log::info("Response received", [
+    //             'status' => $response->status(),
+    //             'headers' => $response->headers(),
+    //             'body' => $response->body(),
+    //             'error' => $error
+    //         ]);
+
+    //         return response()->json(['error' => 'Service request failed'], 500);
+    //     }
+
+    // }
+
     private function forwardRequest($serviceKey, $endpoint, Request $request)
-    {
-        if (!isset($this->services[$serviceKey]) || empty($this->services[$serviceKey])) {
-            return response()->json(['error' => 'Service URL not configured'], 500);
-        }
-
-        $url = rtrim($this->services[$serviceKey], '/') . '/' . ltrim($endpoint, '/');
-        
-        // Log method and URL
-        // Log::info("Forwarding request", [
-        //     'method' => $request->method(),
-        //     'url' => $url,
-        //     'headers' => $request->headers->all(),
-        //     'query' => $request->query(),
-        //     'body' => $request->all()
-        // ]);
-
-        // try {
-        //     // Use a basic GET request first (works as per your test)
-        //     if ($request->method() === 'GET') {
-        //         $response = Http::withHeaders([
-        //             'Accept' => 'application/json',
-        //         ])->get($url, $request->query());
-        //     } else {
-        //         // Forward request with proper method, headers, and body
-        //         // $response = Http::withHeaders($request->headers->all())
-        //         //     ->put('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
-        //         // $response = Http::withHeaders($request->headers->all())
-        //         //     ->send($request->method(), 'https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post', [
-        //         //         'json' => $request->all(), // Send request body
-        //         //     ]);
-
-        //         // $headers = [
-        //         //     'Authorization' => $request->header('Authorization'),
-        //         //     'Accept' => 'application/json',
-        //         //     'Content-Type' => 'application/json',
-        //         // ];
-            
-        //         // $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/api/gateway/hello-post', [
-        //         //     'json' => $request->all(),
-        //         // ]);
-
-        //         $response = Http::withHeaders([
-        //             'Authorization' => $request->header('Authorization'),
-        //             'Accept' => 'application/json',
-        //             'Content-Type' => 'application/json',
-        //         ])->post($url);
-        //     }
-
-        //     // Log response
-        //     Log::info("Response received", [
-        //         'status' => $response->status(),
-        //         'headers' => $response->headers(),
-        //         'body' => $response->body()
-        //     ]);
-
-        //     return response($response->body(), $response->status())
-        //         ->withHeaders($response->headers());
-        // } catch (\Exception $e) {
-        //     Log::error("Error forwarding request to $url: " . $e->getMessage());
-        //     return response()->json(['error' => 'Service request failed'], 500);
-        // }
-
-        // Log::info("API Gatwway Controller Log");
-
-        // $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
-
-        //  // Log response
-        //  Log::info("Response received", [
-        //     'status' => $response->status(),
-        //     'headers' => $response->headers(),
-        //     'body' => $response->body()
-        // ]);
-
-        Log::info("Request", $request->all());
-
-        $response = Http::post($url, $request->all());
-        
-        if ($response->successful()) {
-            $data = $response->json();
-
-            Log::info("Response received", [
-                'status' => $response->status(),
-                'headers' => $response->headers(),
-                'body' => $response->body(),
-                'data' => $data
-            ]);
-            // Handle successful authentication
-
-            return response($response->body(), $response->status());
-        } else {
-            // Handle authentication failure
-            $error = $response->json('error');
-            // Log or display the error message
-            Log::info("Response received", [
-                'status' => $response->status(),
-                'headers' => $response->headers(),
-                'body' => $response->body(),
-                'error' => $error
-            ]);
-
-            return response()->json(['error' => 'Service request failed'], 500);
-        }
-
+{
+    if (!isset($this->services[$serviceKey]) || empty($this->services[$serviceKey])) {
+        return response()->json(['error' => 'Service URL not configured'], 500);
     }
+
+    $url = rtrim($this->services[$serviceKey], '/') . '/' . ltrim($endpoint, '/');
+    $method = strtolower($request->method());
+
+    Log::info("Request Sent", [
+        'method' => strtoupper($method),
+        'url' => $url,
+        'data' => $request->all()
+    ]);
+
+    // Handle all request methods dynamically
+    $response = Http::$method($url, $request->all());
+
+    if ($response->successful()) {
+        $data = $response->json();
+
+        Log::info("Response received", [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'body' => $response->body(),
+            'data' => $data
+        ]);
+
+        return response($response->body(), $response->status());
+    } else {
+        $error = $response->json('error');
+
+        Log::error("Response Error", [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'body' => $response->body(),
+            'error' => $error
+        ]);
+
+        return response()->json(['error' => 'Service request failed'], 500);
+    }
+}
+
 
 }
