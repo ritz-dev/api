@@ -102,7 +102,15 @@ class ApiGatewayController extends Controller
                 'url' => $url,
             ]);
 
-        $response = Http::send($request->method(),$url, $request->all());
+        // $response = Http::send($request->method(),$url, $request->all());
+        try {
+            $response = Http::send($request->method(), $url, $request->all());
+        } catch (\Exception $e) {
+            Log::error("API Gateway Request Failed", [
+                'error' => $e->getMessage(),
+            ]);
+            // Handle the exception as needed, e.g., return a custom error response
+        }
 
          // Log response
          Log::info("Response received", [
