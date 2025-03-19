@@ -97,7 +97,7 @@ class ApiGatewayController extends Controller
         //     return response()->json(['error' => 'Service request failed'], 500);
         // }
 
-
+         Log::info("API Gatwway Controller Log");
 
         $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
 
