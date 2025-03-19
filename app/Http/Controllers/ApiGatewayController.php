@@ -110,11 +110,7 @@ class ApiGatewayController extends Controller
 
         Log::info("Request", $request->all());
 
-        $response = Http::post($url, [
-            'email' => 'user@example.com',
-            'password' => 'securepassword',
-        ]);
-
+        $response = Http::post($url, $request->all());
         
         if ($response->successful()) {
             $data = $response->json();
