@@ -97,9 +97,12 @@ class ApiGatewayController extends Controller
         //     return response()->json(['error' => 'Service request failed'], 500);
         // }
 
-         Log::info("API Gatwway Controller Log");
+         Log::info("API Gatwway Controller Log",[
+                'method' => $request->method(),
+                'url' => $url,
+            ]);
 
-        $response = Http::post($url, $request->all());
+        $response = Http::send($request->method(),$url, $request->all());
 
          // Log response
          Log::info("Response received", [
