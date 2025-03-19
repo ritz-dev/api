@@ -108,6 +108,33 @@ class ApiGatewayController extends Controller
             'body' => $response->body()
         ]);
 
+        $response = Http::post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post', [
+            'email' => 'user@example.com',
+            'password' => 'securepassword',
+        ]);
+        
+        if ($response->successful()) {
+            $data = $response->json();
+
+            Log::info("Response received", [
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body' => $response->body(),
+                'data' => $data
+            ]);
+            // Handle successful authentication
+        } else {
+            // Handle authentication failure
+            $error = $response->json('error');
+            // Log or display the error message
+            Log::info("Response received", [
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body' => $response->body(),
+                'error' => $error
+            ]);
+        }
+
     }
 
 }
