@@ -103,7 +103,7 @@ class ApiGatewayController extends Controller
             'Authorization' => $request->header('Authorization'),
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
-        ])->post($url);
+        ])->post('https://academic-main-nvmcwz.laravel.cloud/gateway/hello-post');
 
          // Log response
          Log::info("Response received", [
