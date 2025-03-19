@@ -106,7 +106,7 @@ class ApiGatewayController extends Controller
         try {
             $response = Http::withHeaders([
                             'Accept' => 'application/json',
-                        ])->send($request->method(),$url, $request->query());
+                        ])->get($url, $request->query());
         } catch (\Exception $e) {
             Log::error("API Gateway Request Failed", [
                 'error' => $e->getMessage(),
