@@ -7,10 +7,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Database\Seeders\RoleSeeder;
 use Database\Seeders\UserSeeder;
-use Database\Seeders\StudentSeeder;
-use Database\Seeders\TeacherSeeder;
-use Database\Seeders\EmployeeSeeder;
-use Database\Seeders\PersonalSeeder;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RolePermissionSeeder;
 

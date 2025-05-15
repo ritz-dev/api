@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Role;
+use Ramsey\Uuid\Guid\Guid;
 use Laravel\Passport\HasApiTokens;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-
-use App\Models\Role;
 
 
 class User extends Authenticatable
@@ -29,6 +29,17 @@ class User extends Authenticatable
         'status',
         'role_id',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if(empty($model->slug)){
+                $model->slug = (string) Guid::uuid4();
+            }
+        });
+    }
 
     public function role(){
         return $this->belongsTo(Role::class,'role_id');

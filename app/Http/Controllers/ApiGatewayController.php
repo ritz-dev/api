@@ -19,7 +19,7 @@ class ApiGatewayController extends Controller
         ];
     }
 
-    public function handleUserManagementService(Request $request, $endpoint)
+    public function handleUserService(Request $request, $endpoint)
     {
         return $this->forwardRequest('user-management', $endpoint, $request);
     }
@@ -83,12 +83,6 @@ class ApiGatewayController extends Controller
         $url = rtrim($this->services[$serviceKey], '/') . '/' . ltrim($endpoint, '/');
         $method = strtolower($request->method());
 
-        Log::info("Request Sent", [
-            'method' => strtoupper($method),
-            'url' => $url,
-            'data' => $request->all()
-        ]);
-
         // Handle all request methods dynamically
         $response = Http::$method($url, $request->all());
 
@@ -104,16 +98,18 @@ class ApiGatewayController extends Controller
 
             return response($response->body(), $response->status());
         } else {
-            $error = $response->json('error');
-
+            $errorBody = $response->body(); // Log the full response body
             Log::error("Response Error", [
                 'status' => $response->status(),
                 'headers' => $response->headers(),
-                'body' => $response->body(),
-                'error' => $error
+                'body' => $errorBody, // Log full body
+                'error' => $response->json('error') ?? 'No specific error key found' 
             ]);
-
-            return response()->json(['error' => 'Service request failed'], 500);
+        
+            return response()->json([
+                'error' => $response->json('error') ?? 'An unknown error occurred',
+                'details' => $errorBody // Include full body for debugging
+            ], $response->status());
         }
     }
 

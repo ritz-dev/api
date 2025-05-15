@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeeder extends Seeder
 {
@@ -18,12 +17,12 @@ class UserSeeder extends Seeder
     {
         $role = Role::first();
         User::create([
-            'slug' => Str::uuid(),
             'name' => 'Super Admin',
             'email' => 'superadmin@example.com',
             'email_verified_at' => now(),
             'password' => Hash::make('superpassword'), // Use a secure password
             'role_id' => $role->id, // Assuming the role_id 1 is for 'Admin' role
+            'employee_id' => 'admin',
             'remember_token' => \Illuminate\Support\Str::random(10),
         ]);
     }

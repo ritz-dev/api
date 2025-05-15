@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use App\Models\RolePermission;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
@@ -21,11 +20,13 @@ class AuthController extends Controller
 {
     public function register(Request $request){
 
-        $registeredData = $request->validate([
-            'name' => 'required|string',
-            'email' => 'email|required|string|unique:users',
-            'password' => 'required|confirmed'
-        ]);
+        // $registeredData = $request->validate([
+        //     'name' => 'required|string',
+        //     'email' => 'email|required|string|email|unique:users',
+        //     'password' => 'required|confirmed',
+        //     'role_id' => 'required',
+        //     'employee_id' => 'required'|'string'|'max:100',
+        // ]);
 
         try{
             DB::beginTransaction();
@@ -35,6 +36,7 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->role_id = $request->role_id;
+            $user->employee_id = $request->employee_id;
             $user->save();
 
             $token = $user->createToken('SMS')->accessToken;
@@ -51,9 +53,10 @@ class AuthController extends Controller
             DB::commit();
 
             return response()->json([
-                "token" => $token,
+                'slug' => $user->employee_id,
+                'token' => $token,
                 'permissions' => $permission,
-                'role' => $role
+                'role' => $role,
             ],200);
         }catch (Exception $e) {
             DB::rollBack();
@@ -85,9 +88,10 @@ class AuthController extends Controller
                 $permission [] = Permission::where('id',$role_permission->permission_id)->pluck('name')->first();
             }
             return response()->json([
+                'slug' => $user->employee_id,
                 'token' => $token,
                 'permissions' => $permission,
-                'role' => $role
+                'role' => $role,
             ],200);
         }else{
             return response()->json([

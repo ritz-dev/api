@@ -1,18 +1,10 @@
 <?php
 
-use App\Http\Controllers\ApiGatewayController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\ApiGatewayController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\APIs\StudentController;
-use App\Http\Controllers\APIs\TeacherController;
-use App\Http\Controllers\APIs\EmployeeController;
-use App\Http\Controllers\APIs\PersonalController;
-
-use App\Models\User;
 
 
 Route::get('/', function () {
@@ -29,8 +21,8 @@ Route::prefix('finance')->group(function () {
 
 Route::middleware('auth:api')->group(function(){
 
-    Route::prefix('user-management')->group(function () {
-        Route::any('{endpoint}', [ApiGatewayController::class, 'handleUserManagementService'])->where('endpoint', '.*');
+    Route::prefix('user')->group(function () {
+        Route::any('{endpoint}', [ApiGatewayController::class, 'handleUserService'])->where('endpoint', '.*');
     });
    
     Route::prefix('academic')->group(function () {
@@ -39,6 +31,10 @@ Route::middleware('auth:api')->group(function(){
 
     Route::prefix('finance')->group(function () {
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleFinanceService'])->where('endpoint', '.*');
+    });
+
+    Route::middleware('role:teacher')->prefix('teacher')->group(function () {
+        Route::any('{endpoint}', [ApiGatewayController::class, 'handleTeacherService'])->where('endpoint', '.*');
     });
 
     Route::post('/logout',[AuthController::class,'logout']);
