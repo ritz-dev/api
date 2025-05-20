@@ -37,6 +37,14 @@ Route::middleware('auth:api')->group(function(){
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleTeacherService'])->where('endpoint', '.*');
     });
 
+    Route::middleware('role:student')->prefix('student')->group(function () {
+        Route::any('{endpoint}', [ApiGatewayController::class, 'handleStudentService'])->where('endpoint', '.*');
+    });
+    
+    Route::middleware('role:hr')->prefix('hr')->group(function () {
+        Route::any('{endpoint}', [ApiGatewayController::class, 'handleHRService'])->where('endpoint', '.*');
+    });
+
     Route::post('/logout',[AuthController::class,'logout']);
     Route::get('/me',[AuthController::class,'me']);
     Route::post('/me',[AuthController::class,'me']);
