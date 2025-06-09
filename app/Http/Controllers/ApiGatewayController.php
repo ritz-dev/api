@@ -84,27 +84,17 @@ class ApiGatewayController extends Controller
         $method = strtolower($request->method());
 
         // Handle all request methods dynamically
-        $response = Http::$method($url, $request->all());
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ])->{$method}($url, $request->all());
 
         if ($response->successful()) {
             $data = $response->json();
 
-            Log::info("Response received", [
-                'status' => $response->status(),
-                'headers' => $response->headers(),
-                'body' => $response->body(),
-                'data' => $data
-            ]);
-
-            return response($response->body(), $response->status());
+            return response($response->body(), $response->status())->header('Content-Type', 'application/json');
         } else {
             $errorBody = $response->body(); // Log the full response body
-            Log::error("Response Error", [
-                'status' => $response->status(),
-                'headers' => $response->headers(),
-                'body' => $errorBody, // Log full body
-                'error' => $response->json('error') ?? 'No specific error key found' 
-            ]);
         
             return response()->json([
                 'error' => $response->json('error') ?? 'An unknown error occurred',
