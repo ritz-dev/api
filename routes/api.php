@@ -33,7 +33,7 @@ Route::middleware('auth:api')->group(function(){
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleFinanceService'])->where('endpoint', '.*');
     });
 
-    Route::middleware('role:teacher')->prefix('teacher')->group(function () {
+    Route::middleware('role:Teacher')->prefix('teacher')->group(function () {
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleTeacherService'])->where('endpoint', '.*');
     });
 

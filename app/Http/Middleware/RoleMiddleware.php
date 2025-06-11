@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,8 +17,9 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, $role): Response
     {
         $user = auth()->user();
+        $userRole = Role::where('slug', $user->role_slug)->first()->name ?? null;
 
-        if (!$user || $user->role !== $role) {
+        if (!$user || $userRole !== $role) {
             return response()->json(['message' => 'Unauthorized. Only '.$role.'s allowed.'], 403);
         }
 

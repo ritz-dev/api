@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Models\RolePermission;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -15,7 +16,7 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $roles = Role::get();
-        $permissions = Permission::get()->pluck('id')->toArray();
+        $permissions = Permission::get()->pluck('slug')->toArray();
 
         // Prepare an array to hold the role permission data
         $pivotData = [];
@@ -26,8 +27,10 @@ class RolePermissionSeeder extends Seeder
             foreach($permissions as $permission) {
                 // Add the role permission data to the pivot array
                 $pivotData[] = [
-                    'role_id' => $role->id,
-                    'permission_id' => $permission,
+                    'slug' => (string) \Illuminate\Support\Str::uuid(),
+                    'role_slug' => $role->slug,
+                    'permission_slug' => $permission,
+                    "description" => $role->name . ' has permission for ' . $permission,
                 ];
             }
         }

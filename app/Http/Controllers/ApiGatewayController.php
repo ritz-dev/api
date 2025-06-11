@@ -14,6 +14,7 @@ class ApiGatewayController extends Controller
     {
         $this->services = [
             'user-management' => env('USER_MANAGEMENT_URL'),
+            'teacher' => env('TEACHER_URL'),
             'academic' => env('ACADEMIC_URL'),
             'finance' => env('FINANCE_URL'),
         ];
@@ -27,6 +28,11 @@ class ApiGatewayController extends Controller
     public function handleAcademicService(Request $request, $endpoint)
     {
         return $this->forwardRequest('academic', $endpoint, $request);
+    }
+
+    public function handleTeacherService(Request $request, $endpoint)
+    {
+        return $this->forwardRequest('teacher', $endpoint, $request);
     }
 
     public function handleFinanceService(Request $request, $endpoint)
