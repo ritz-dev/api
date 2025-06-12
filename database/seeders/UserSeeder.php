@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $teacherApiUrl = config('services.user_management.url') . '/teachers';
+        $teacherApiUrl = config('services.user.url') . '/teachers';
 
         logger($teacherApiUrl);
 

@@ -38,7 +38,7 @@ class AuthController extends Controller
             }
 
             // Check if the employee already exists
-            $baseUrl = config('services.user_management.url');
+            $baseUrl = config('services.user.url');
 
             $endpoint = match ($validated['role_name']) {
                 'Teacher' => "$baseUrl" . "/teachers/show",
