@@ -13,7 +13,7 @@ class ApiGatewayController extends Controller
     public function __construct()
     {
         $this->services = [
-            'user-management' => env('USER_URL'),
+            'user' => env('USER_URL'),
             'teacher' => env('TEACHER_URL'),
             'academic' => env('ACADEMIC_URL'),
             'finance' => env('FINANCE_URL'),
@@ -22,7 +22,7 @@ class ApiGatewayController extends Controller
 
     public function handleUserService(Request $request, $endpoint)
     {
-        return $this->forwardRequest('user-management', $endpoint, $request);
+        return $this->forwardRequest('user', $endpoint, $request);
     }
 
     public function handleAcademicService(Request $request, $endpoint)

@@ -13,7 +13,7 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-    'user_management' => [ 
+    'user' => [ 
         'url' => env('USER_URL'), 
     ],
     
