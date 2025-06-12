@@ -14,7 +14,7 @@ return [
     |
     */
     'user_management' => [ 
-        'url' => env('USER_SERVICE_URL'), 
+        'url' => env('USER_URL'), 
     ],
     
     'postmark' => [
