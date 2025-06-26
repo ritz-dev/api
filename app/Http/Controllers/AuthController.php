@@ -103,6 +103,9 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        try {
+
+
         $credentials = [
             'email'    => $request->email,
             'password' => $request->password
@@ -131,6 +134,12 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'Unauthorized! Invalid email or password.'
             ], 401);
+        }
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'Bad Request! Could not process the login.',
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
