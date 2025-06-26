@@ -54,35 +54,35 @@ class UserSeeder extends Seeder
             }
         }
 
-        User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('superpassword'), // Use a secure password
-            'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
-            'employee_slug' => 'admin',
-            'remember_token' => \Illuminate\Support\Str::random(10),
-        ]);
+        // User::create([
+        //     'name' => 'Super Admin',
+        //     'email' => 'superadmin@example.com',
+        //     'email_verified_at' => now(),
+        //     'password' => Hash::make('superpassword'), // Use a secure password
+        //     'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
+        //     'employee_slug' => 'admin',
+        //     'remember_token' => \Illuminate\Support\Str::random(10),
+        // ]);
 
-        User::create([
-            'name' => 'Super Admin 1',
-            'email' => 'superadmin1@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('superpassword'), // Use a secure password
-            'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
-            'employee_slug' => 'admin',
-            'remember_token' => \Illuminate\Support\Str::random(10),
-        ]);
+        // User::create([
+        //     'name' => 'Super Admin 1',
+        //     'email' => 'superadmin1@example.com',
+        //     'email_verified_at' => now(),
+        //     'password' => Hash::make('superpassword'), // Use a secure password
+        //     'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
+        //     'employee_slug' => 'admin',
+        //     'remember_token' => \Illuminate\Support\Str::random(10),
+        // ]);
 
-        User::create([
-            'name' => 'Super Admin 2',
-            'email' => 'superadmin2@example.com',
-            'email_verified_at' => now(),
-            'password' => Hash::make('superpassword'), // Use a secure password
-            'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
-            'employee_slug' => 'admin',
-            'remember_token' => \Illuminate\Support\Str::random(10),
-        ]);
+        // User::create([
+        //     'name' => 'Super Admin 2',
+        //     'email' => 'superadmin2@example.com',
+        //     'email_verified_at' => now(),
+        //     'password' => Hash::make('superpassword'), // Use a secure password
+        //     'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
+        //     'employee_slug' => 'admin',
+        //     'remember_token' => \Illuminate\Support\Str::random(10),
+        // ]);
 
     }
 }
