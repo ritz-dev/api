@@ -18,8 +18,6 @@ class UserSeeder extends Seeder
     {
         $teacherApiUrl = config('services.user.url') . '/teachers';
 
-        logger($teacherApiUrl);
-
         // Fetch teacher info based on the section ID
         $responset = Http::withHeaders([
             'Accept' => 'application/json',
