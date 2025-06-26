@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
 
         // $teachers = collect($teachersArray);
         
-        // $role = Role::first();
+        $role = Role::first();
 
         // $teacherRole = Role::where('name', 'Teacher')->first();
 
