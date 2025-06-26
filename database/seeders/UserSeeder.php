@@ -59,8 +59,18 @@ class UserSeeder extends Seeder
             'email' => 'superadmin@example.com',
             'email_verified_at' => now(),
             'password' => Hash::make('superpassword'), // Use a secure password
-            'role_slug' => $role->slug, // Assuming the role_slug 1 is for 'Admin' role
+            'role_slug' => "10000000000000000000000000000000000", // Assuming the role_slug 1 is for 'Admin' role
             'employee_slug' => 'admin',
+            'remember_token' => \Illuminate\Support\Str::random(10),
+        ]);
+
+        User::create([
+            'name' => 'Yar Yar',
+            'email' => 'teacher3@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('superpassword'), // Use a secure password
+            'role_slug' => "10000000000000000000000000000000002", // Assuming the role_slug 1 is for 'Admin' role
+            'employee_slug' => "10000000000000000000000000000000002",
             'remember_token' => \Illuminate\Support\Str::random(10),
         ]);
 

@@ -13,14 +13,17 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         Role::create([
+            "slug" => "10000000000000000000000000000000000",
             "name" => "Admin",
         ]);
 
         Role::create([
+            "slug" => "10000000000000000000000000000000001",
             "name" => "HR",
         ]);
 
         Role::create([
+            "slug" => "10000000000000000000000000000000002",
             "name" => "Teacher",
         ]);
     }
