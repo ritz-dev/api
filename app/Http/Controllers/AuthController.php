@@ -104,37 +104,35 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            $credentials = [
+                'email'    => $request->email,
+                'password' => $request->password
+            ];
 
+            $user = User::where('email', $request->email)->first();
 
-        $credentials = [
-            'email'    => $request->email,
-            'password' => $request->password
-        ];
+            if ($user && Hash::check($request->password, $user->password)) {
+                $token = $user->createToken('SMS')->accessToken;
 
-        $user = User::where('email', $request->email)->first();
+                $role = Role::where('slug',$user->role_slug)->pluck('name')->first();
+                $role_permissions = RolePermission::where('role_slug',$user->role_slug)->get();
 
-        if ($user && Hash::check($request->password, $user->password)) {
-            $token = $user->createToken('SMS')->accessToken;
+                $permission = [];
 
-            $role = Role::where('slug',$user->role_slug)->pluck('name')->first();
-            $role_permissions = RolePermission::where('role_slug',$user->role_slug)->get();
-
-            $permission = [];
-
-            foreach($role_permissions as $role_permission){
-                $permission [] = Permission::where('slug',$role_permission->permission_slug)->pluck('name')->first();
+                foreach($role_permissions as $role_permission){
+                    $permission [] = Permission::where('slug',$role_permission->permission_slug)->pluck('name')->first();
+                }
+                return response()->json([
+                    'slug' => $user->employee_slug,
+                    'token' => $token,
+                    'permissions' => $permission,
+                    'role' => $role,
+                ],200);
+            }else{
+                return response()->json([
+                    'status' => 'Unauthorized! Invalid email or password.'
+                ], 401);
             }
-            return response()->json([
-                'slug' => $user->employee_slug,
-                'token' => $token,
-                'permissions' => $permission,
-                'role' => $role,
-            ],200);
-        }else{
-            return response()->json([
-                'status' => 'Unauthorized! Invalid email or password.'
-            ], 401);
-        }
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'Bad Request! Could not process the login.',
