@@ -27,7 +27,7 @@ class User extends Authenticatable
         'email',
         'password',
         'status',
-        'role_id',
+        'role_slug',
     ];
 
     protected static function boot()
