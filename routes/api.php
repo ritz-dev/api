@@ -71,7 +71,7 @@ Route::middleware('auth:api')->group(function(){
 
     //  Role
     Route::prefix('roles')->group(function(){
-        Route::post('list',[RoleController::class,'list']);
+        Route::post('/',[RoleController::class,'index']);
         Route::post('create',[RoleController::class,'create']);
         Route::post('detail',[RoleController::class,'show']);
         Route::put('update',[RoleController::class,'update']);
