@@ -88,12 +88,12 @@ class RoleController extends Controller
             $role = new Role;
             $role->slug = Str::uuid();
             $role->name = $request->name;
-            $role->description = $request->description;
             $role->save();
 
             $permissionIds = collect($request->permissions)->map(function ($permissionName) use ($role) {
 
                 $permission = Permission::where('name', $permissionName)->first();
+
                 if(!$permission){
                     $permission = new Permission;
                     $permission->name = $permissionName;
@@ -132,7 +132,6 @@ class RoleController extends Controller
 
             $role = Role::with('permissions')->where('slug',$request->slug)->firstOrFail();
             $role->name = $request->name;
-            $role->description = $request->description;
             $role->save();
 
             $permissionsArray = $request->permissions;
@@ -155,7 +154,6 @@ class RoleController extends Controller
             $transformedRole = [
                 'id' => $role->id,
                 'name' => $role->name,
-                'description' => $role->description,
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ];
 

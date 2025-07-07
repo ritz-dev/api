@@ -17,7 +17,6 @@ class RoleResource extends JsonResource
         return [
             "slug" => $this->slug,
             "name" => $this->name,
-            "description" => $this->description,
             "permissions" => $this->permissions->map(function ($perm) {
                 return $perm->name;
             }),
