@@ -40,6 +40,13 @@ class Role extends Model
 
     public function permissions()
     {
-        return $this->belongsToMany(Permission::class, 'role_permissions','role_slug','permission_slug');
+        return $this->belongsToMany(
+            Permission::class,
+            'role_permissions',
+            'role_slug',
+            'permission_slug',
+            'slug',   // ⬅ local key on Role
+            'slug'    // ⬅ local key on Permission
+        );
     }
 }

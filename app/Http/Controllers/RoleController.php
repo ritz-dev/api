@@ -40,6 +40,8 @@ class RoleController extends Controller
             $roles = $query->get();
             $data  = RoleResource::collection($roles);
 
+            logger($roles);
+
             return response()->json([
                 'status' => 'OK! The request was successful.',
                 'total'  => $total,
