@@ -76,53 +76,50 @@ class RoleController extends Controller
         }
     }
 
-    public function create(Request $request)
-{
-    $validated = $request->validate([
-        'name'        => ['required', 'string'],
-        'permissions' => ['required', 'array'],
-        'permissions.*' => ['string'],   // each item must be a string
-    ]);
+    public function create(Request $request){
+        try{
+            DB::beginTransaction();
 
-    try {
-        DB::beginTransaction();
+            $request->validate([
+                'name' => 'required|string',
+                'permissions' => 'required|array'
+            ]);
 
-        // ── 1. Create the role ────────────────────────────────────────────────
-        $role = Role::create([
-            'slug' => Str::uuid()->toString(),
-            'name' => $validated['name'],
-        ]);
+            $role = new Role;
+            $role->slug = Str::uuid();
+            $role->name = $request->name;
+            $role->save();
 
-        // ── 2. Resolve / create permissions, keyed by slug ───────────────────
-        $permissionSlugs = collect($validated['permissions'])
-            ->map(function (string $permName) {
-                return Permission::firstOrCreate(
-                    ['name' => $permName],
-                    ['slug' => Str::uuid()->toString()]   // created‑on‑the‑fly
-                )->slug;   // we want the slug, not the numeric id
-            })
-            ->all();
+            $permissionIds = collect($request->permissions)->map(function ($permissionName) use ($role) {
 
-        // ── 3. Attach via the slugs used in your relationship definition ─────
-        //     If you want to wipe existing links on update, swap `attach` → `sync`.
-        $role->permissions()->attach($permissionSlugs);
+                $permission = Permission::where('name', $permissionName)->first();
 
-        DB::commit();
+                if(!$permission){
+                    $permission = new Permission;
+                    $permission->name = $permissionName;
+                    $permission->save();
+                    return $permission->slug;
+                }else{
+                    return $permission->slug;
+                }
+            })->filter()->all();
 
-        return response()->json([
-            'status'  => 'OK! The request was successful.',
-            'role'    => $role->only(['slug', 'name']),
-            'links'   => count($permissionSlugs),
-        ], 200);
-    } catch (\Throwable $e) {
-        DB::rollBack();
+            $role->permissions()->attach($permissionIds);
 
-        return response()->json([
-            'status'  => 'An error occurred while adding.',
-            'message' => $e->getMessage(),
-        ], 500);
+            DB::commit();
+
+            return response()->json([
+                'status' => "OK! The request was successful.",
+            ],200);
+
+        }catch(Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'status' => 'An error occurred while adding.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     public function update(Request $request){
         try {
