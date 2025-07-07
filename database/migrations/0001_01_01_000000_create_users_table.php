@@ -24,9 +24,11 @@ return new class extends Migration
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
+
+            $table->foreign('role_slug')->references('slug')->on('roles')->onDelete('cascade');
+
         });
         
-        $table->foreign('role_slug')->references('slug')->on('roles')->onDelete('cascade');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
