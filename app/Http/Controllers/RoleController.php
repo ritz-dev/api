@@ -7,39 +7,50 @@ use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Models\RolePermission;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\RoleResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RoleController extends Controller
 {
-    public function list(Request $request){
-        try{
-            $limit = (int)$request->limit;
-            $search = $request->search;
+    public function index(Request $request)
+    {
+        try {
+
+            $validated = $request->validate([
+                'search'    => ['nullable', 'string'],
+                'orderBy'   => ['nullable', 'in:id,name,slug'],
+                'sortedBy'  => ['nullable', 'in:asc,desc'],
+                'limit'     => ['nullable', 'integer', 'min:1'],
+                'skip'      => ['nullable', 'integer', 'min:0'],
+            ]);
 
             $query = Role::with('permissions')
-                            ->orderBy('id','desc');
-            if($search){
-                $query->where('name','LIKE',$search.'%');
-            }
-            $query_data = $limit ? $query->paginate($limit) : $query->get();
+                ->when(!empty($validated['search']),  fn ($q) => $q->where('name', 'like', $validated['search'].'%'))
+                ->when(!empty($validated['orderBy']), function ($q) use ($validated) {
+                    // use provided column & direction
+                    $q->orderBy($validated['orderBy'], $validated['sortedBy'] ?? 'asc');
+                }, fn ($q) => $q->orderByDesc('id'));
+           
+            $total = (clone $query)->count();
 
-            $data = RoleResource::collection($query_data);
+            if (!empty($validated['skip']))   { $query->skip($validated['skip'] * $validated['limit']); }
+            if (!empty($validated['limit']))  { $query->take($validated['limit']); }
 
-            $total = Role::count();
+            $roles = $query->get();
+            $data  = RoleResource::collection($roles);
 
             return response()->json([
-                'status' => "OK! The request was successful.",
-                'data' => $data,
-                'total' => $total
-            ],200);
-        }catch(Exception $e){
+                'status' => 'OK! The request was successful.',
+                'total'  => $total,
+                'data'   => $data,
+            ], 200);
+
+        } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Bad Request!. The request is invalid.',
-                'message' => $e->getMessage()
-            ],400);
+                'error'   => 'Bad Request! The request is invalid.',
+                'message' => $e->getMessage(),
+            ], 400);
         }
     }
 

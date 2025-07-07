@@ -198,33 +198,43 @@ class AuthController extends Controller
         return response()->json($data,200);
     }
 
-    public function list(Request $request){
-        try{
-            $limit = (int)$request->limit;
-            $search = $request->search;
+    public function index(Request $request){
+        try {
+            
+            $validated = $request->validate([
+                'search'    => ['nullable', 'string'],
+                'orderBy'   => ['nullable', 'in:id,name,email'], // ← adjust allowed columns
+                'sortedBy'  => ['nullable', 'in:asc,desc'],
+                'limit'     => ['nullable', 'integer', 'min:1'],
+                'skip'      => ['nullable', 'integer', 'min:0'],
+            ]);
 
-            $query = User::with(['role'])->orderBy('id','desc');
+            $query = User::with('role')
+                ->when(!empty($validated['search']), fn($q) =>
+                    $q->where('name', 'like', $validated['search'].'%'))
+                ->when(!empty($validated['orderBy']), function ($q) use ($validated) {
+                    $q->orderBy($validated['orderBy'], $validated['sortedBy'] ?? 'asc');
+                }, fn($q) => $q->orderByDesc('id')); // default order
 
-            if($search){
-                $query->where('name','LIKE',$search.'%');
-            }
+            $total = (clone $query)->count();
 
-            $query_data = $limit ? $query->paginate($limit) : $query->get();
+            if (!empty($validated['skip']))  $query->skip($validated['skip'] * $validated['limit']);
+            if (!empty($validated['limit'])) $query->take($validated['limit']);
 
-            $data = UserResource::collection($query_data);
-
-            $total = Role::count();
+            $users = $query->get();
+            $data  = UserResource::collection($users);
 
             return response()->json([
-                'status' => "OK! The request was successful.",
-                'total' => $total,
-                'data' => $data
-            ],200);
-        }catch(Exception $e){
+                'status' => 'OK! The request was successful.',
+                'total'  => $total,
+                'data'   => $data,
+            ], 200);
+
+        } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Bad Request!. The request is invalid.',
-                'message' => $e->getMessage()
-            ],400);
+                'error'   => 'Bad Request! The request is invalid.',
+                'message' => $e->getMessage(),
+            ], 400);
         }
     }
 

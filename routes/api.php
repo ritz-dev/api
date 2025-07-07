@@ -51,7 +51,7 @@ Route::middleware('auth:api')->group(function(){
 
     // user
     Route::prefix('users')->group(function(){
-        Route::post('list',[AuthController::class,'list']);
+        Route::post('/',[AuthController::class,'index']);
         Route::post('create',[AuthController::class,'create']);
         Route::post('detail',[AuthController::class,'show']);
         Route::put('update',[AuthController::class,'update']);
@@ -62,7 +62,7 @@ Route::middleware('auth:api')->group(function(){
     
     // Permission
     Route::prefix('permissions')->group(function(){
-        Route::post('list',[PermissionController::class,'list']);
+        Route::post('/',[PermissionController::class,'index']);
         Route::post('create',[PermissionController::class,'create']);
         Route::post('detail',[PermissionController::class,'show']);
         Route::put('update',[PermissionController::class,'update']);
