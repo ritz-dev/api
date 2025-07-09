@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('role_slug');
-            $table->string('employee_slug');
+            $table->string('employee_slug')->nullable();
             $table->enum('status',['active','inactive','pending','suspended'])->default('active');
             $table->softDeletes();
             $table->rememberToken();
