@@ -54,7 +54,7 @@ Route::middleware('auth:api')->group(function(){
         Route::post('/',[AuthController::class,'index']);
         Route::post('create',[AuthController::class,'create']);
         Route::post('detail',[AuthController::class,'show']);
-        Route::put('update',[AuthController::class,'update']);
+        Route::post('update',[AuthController::class,'update']);
         Route::post('delete',[AuthController::class,'delete']);
         Route::post('change-password',[AuthController::class,'password']);
     });
@@ -65,7 +65,7 @@ Route::middleware('auth:api')->group(function(){
         Route::post('/',[PermissionController::class,'index']);
         Route::post('create',[PermissionController::class,'create']);
         Route::post('detail',[PermissionController::class,'show']);
-        Route::put('update',[PermissionController::class,'update']);
+        Route::post('update',[PermissionController::class,'update']);
         Route::post('delete',[PermissionController::class,'delete']);
     });
 
@@ -74,7 +74,7 @@ Route::middleware('auth:api')->group(function(){
         Route::post('/',[RoleController::class,'index']);
         Route::post('create',[RoleController::class,'create']);
         Route::post('detail',[RoleController::class,'show']);
-        Route::put('update',[RoleController::class,'update']);
+        Route::post('update',[RoleController::class,'update']);
         Route::post('delete',[RoleController::class,'delete']);
     });
 

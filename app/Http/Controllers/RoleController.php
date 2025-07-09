@@ -79,12 +79,13 @@ class RoleController extends Controller
 
     public function create(Request $request){
         try{
-            DB::beginTransaction();
-
+            
             $request->validate([
-                'name' => 'required|string',
-                'permissions' => 'required|array'
+                'name' => ['required', 'string'],
+                'permissions' => ['required', 'array']
             ]);
+
+            DB::beginTransaction();
 
             $role = new Role;
             $role->slug = Str::uuid();
@@ -124,12 +125,15 @@ class RoleController extends Controller
 
     public function update(Request $request){
         try {
-            DB::beginTransaction();
+            
 
             $request->validate([
-                "name" => "required|string",
-                "permissions" => "required|array"
+                'slug' => ['nullable', 'string', 'exists:roles,slug'],
+                'name' => ['required', 'string'],
+                'permissions' => ['required', 'array']
             ]);
+
+            DB::beginTransaction();
 
             $role = Role::with('permissions')->where('slug',$request->slug)->firstOrFail();
             $role->name = $request->name;
