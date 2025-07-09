@@ -9,12 +9,13 @@ use App\Models\Permission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\RolePermission;
-use App\Http\Resources\UserResource;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -312,8 +313,6 @@ class AuthController extends Controller
                 'status' => $validatedData['status'],
                 'role_id' => 1,
             ]);
-
-           
     
             return response()->json([
                 'status' => "Updated successfully.",
