@@ -148,19 +148,13 @@ class RoleController extends Controller
                     $permission = new Permission;
                     $permission->name = $permissionName;
                     $permission->save();
-                    return $permission->id;
+                    return $permission->slug;
                 }else{
-                    return $permission->id;
+                    return $permission->slug;
                 }
             })->filter()->all();
 
             $role->permissions()->sync($permissionIds);
-
-            $transformedRole = [
-                'id' => $role->id,
-                'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray(),
-            ];
 
             DB::commit();
 
