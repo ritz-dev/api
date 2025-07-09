@@ -270,8 +270,8 @@ class AuthController extends Controller
             $user->slug = Str::uuid();
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->password = Hash::make('superpassword');
-            $user->role_id = 1;
+            $user->password = Hash::make($request->password);
+            $user->role_slug = $request->role_slug;
             $user->status = $request->status;
             $user->save();
 
