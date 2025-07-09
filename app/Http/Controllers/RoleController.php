@@ -8,6 +8,7 @@ use App\Models\Permission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
