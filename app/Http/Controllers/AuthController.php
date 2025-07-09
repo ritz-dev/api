@@ -218,7 +218,7 @@ class AuthController extends Controller
 
             $total = (clone $query)->count();
 
-            if (!empty($validated['skip']))  $query->skip($validated['skip'] * $validated['limit']);
+            if (!empty($validated['skip']))  $query->skip($validated['skip']);
             if (!empty($validated['limit'])) $query->take($validated['limit']);
 
             $users = $query->get();
