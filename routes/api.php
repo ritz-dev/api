@@ -52,8 +52,8 @@ Route::middleware('auth:api')->group(function(){
     // user
     Route::prefix('users')->group(function(){
         Route::post('/',[AuthController::class,'index']);
-        Route::post('create',[AuthController::class,'create']);
-        Route::post('detail',[AuthController::class,'show']);
+        Route::post('store',[AuthController::class,'store']);
+        Route::post('show',[AuthController::class,'show']);
         Route::post('update',[AuthController::class,'update']);
         Route::post('delete',[AuthController::class,'delete']);
         Route::post('change-password',[AuthController::class,'password']);
@@ -63,8 +63,8 @@ Route::middleware('auth:api')->group(function(){
     // Permission
     Route::prefix('permissions')->group(function(){
         Route::post('/',[PermissionController::class,'index']);
-        Route::post('create',[PermissionController::class,'create']);
-        Route::post('detail',[PermissionController::class,'show']);
+        Route::post('store',[PermissionController::class,'store']);
+        Route::post('show',[PermissionController::class,'show']);
         Route::post('update',[PermissionController::class,'update']);
         Route::post('delete',[PermissionController::class,'delete']);
     });
@@ -72,8 +72,8 @@ Route::middleware('auth:api')->group(function(){
     //  Role
     Route::prefix('roles')->group(function(){
         Route::post('/',[RoleController::class,'index']);
-        Route::post('create',[RoleController::class,'create']);
-        Route::post('detail',[RoleController::class,'show']);
+        Route::post('store',[RoleController::class,'store']);
+        Route::post('show',[RoleController::class,'show']);
         Route::post('update',[RoleController::class,'update']);
         Route::post('delete',[RoleController::class,'delete']);
     });
