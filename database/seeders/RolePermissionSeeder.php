@@ -14,25 +14,80 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = Role::get();
-        $permissions = Permission::get()->pluck('slug')->toArray();
+        // Map roles by slug for easy access
+        $roles = Role::pluck('id', 'slug')->toArray();
 
-        // Prepare an array to hold the role permission data
-        $pivotData = [];
+        // Map permissions by name to get their slugs (UUIDs)
+        $permissions = Permission::pluck('slug', 'name')->toArray();
 
-        // Loop through each role
-        foreach($roles as $role) {
-            // For each role, loop through all permissions
-            foreach($permissions as $permission) {
-                // Add the role permission data to the pivot array
-                $pivotData[] = [
-                    'role_slug' => $role->slug,
-                    'permission_slug' => $permission,
-                ];
+        // Define which permissions each role should have (by permission 'name')
+        $rolePermissionsMap = [
+            // Super Admin: all permissions
+            '10000000000000000000000000000000000' => array_values($permissions),
+
+            // Admin: most permissions except maybe 'permission-delete'
+            '10000000000000000000000000000000001' => [
+                $permissions['user.view'] ?? null,
+                $permissions['user.create'] ?? null,
+                $permissions['user.edit'] ?? null,
+                $permissions['user.delete'] ?? null,
+                $permissions['role.view'] ?? null,
+                $permissions['role.create'] ?? null,
+                $permissions['role-edit'] ?? null,
+                $permissions['role-delete'] ?? null,
+                $permissions['permission.view'] ?? null,
+                $permissions['permission.assign'] ?? null,
+                $permissions['permission-update'] ?? null,
+                $permissions['student-create'] ?? null,
+                $permissions['dashboard.view'] ?? null,
+                $permissions['audit.view'] ?? null,
+                $permissions['profile.view'] ?? null,
+                $permissions['profile.eidt'] ?? null,
+            ],
+
+            // Editor: limited permissions
+            '10000000000000000000000000000000002' => [
+                $permissions['user.view'] ?? null,
+                $permissions['dashboard.view'] ?? null,
+                $permissions['profile.view'] ?? null,
+                $permissions['profile.eidt'] ?? null,
+            ],
+
+            // Viewer: mostly read-only
+            '10000000000000000000000000000000003' => [
+                $permissions['dashboard.view'] ?? null,
+                $permissions['profile.view'] ?? null,
+            ],
+
+            // HR: some specific permissions
+            '10000000000000000000000000000000004' => [
+                $permissions['user.view'] ?? null,
+                $permissions['student-create'] ?? null,
+                $permissions['profile.view'] ?? null,
+            ],
+
+            // Teacher: very limited permissions
+            '10000000000000000000000000000000005' => [
+                $permissions['profile.view'] ?? null,
+                $permissions['profile.eidt'] ?? null,
+            ],
+        ];
+
+        foreach ($rolePermissionsMap as $roleSlug => $permissionSlugs) {
+            foreach ($permissionSlugs as $permissionSlug) {
+                if ($permissionSlug === null) {
+                    // Skip missing permission
+                    continue;
+                }
+
+                RolePermission::updateOrCreate(
+                    [
+                        'role_slug'       => $roleSlug,
+                        'permission_slug' => $permissionSlug,
+                    ],
+                    []
+                );
             }
         }
-
-        // Insert all the data at once
-        RolePermission::insert($pivotData);
     }
 }

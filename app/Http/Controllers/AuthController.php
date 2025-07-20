@@ -10,194 +10,184 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\RolePermission;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function register(Request $request){
-        try{
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:6',
-                'role_slug' => 'required|exists:roles,slug',
-                'role_name' => 'required|string|max:100',
-                'employee_slug' => 'required|string|max:100',
+        try {
+            // 1. Check if the user has permission (e.g., only Super Admin)
+            $authUser = auth()->guard('api')->user();
+
+            if (!$authUser || $authUser->role_slug !== 'super-admin') {
+                return response()->json([
+                    'status' => 'Forbidden. Only super admins can register new admins.'
+                ], 403);
+            }
+
+            // 2. Validate request
+            $validator = Validator::make($request->all(), [
+                'name'     => ['required', 'string', 'max:255'],
+                'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8'],
+                'role_slug'=> ['required', Rule::exists('roles', 'slug')],
             ]);
-            // Check if the role exists
-            $role = Role::where('slug', $validated['role_slug'])->first();
-            
-            if (!$role) {
+
+            if ($validator->fails()) {
                 return response()->json([
-                    'message' => 'Role not found.'
-                ], 404);
+                    'status' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
             }
 
-            // Check if the employee already exists
-            $baseUrl = config('services.user.url');
-
-            $endpoint = match ($validated['role_name']) {
-                'Teacher' => "$baseUrl" . "/teachers/show",
-                default => null,
-            };
-
-            if ($endpoint) {
-                $studentResponse = Http::withHeaders([
-                    'Accept' => 'application/json',
-                    // You can include auth header if needed
-                    // 'Authorization' => $request->header('Authorization'),
-                ])->post($endpoint, [
-                    'slug' => $validated['employee_slug']
-                ]);
-            }
-
-            if ($studentResponse->status() !== 200 || !$studentResponse->json('data')) {
-                return response()->json([
-                    'message' => 'Student not found in the system.'
-                ], 404);
-            }
-
-            DB::beginTransaction();
-
-            // Create the user
+            // 3. Create user
             $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role_slug' => $role->slug,
-                'employee_slug' => $validated['employee_slug'],
+                'name'      => $request->name,
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password),
+                'role_slug' => $request->role_slug,
+                'slug'      => Str::uuid()->toString(), // or your custom slug logic
             ]);
 
-            $token = $user->createToken('SMS')->accessToken;
-
-            $role = Role::where('slug',$user->role_slug)->pluck('name')->first();
-            $role_permissions = RolePermission::where('role_slug',$user->role_slug)->get();
-
-            $permission = [];
-
-            foreach($role_permissions as $role_permission){
-                $permission [] = Permission::where('slug',$role_permission->permission_sluf)->pluck('name')->first();
-            }
-
-            DB::commit();
-
             return response()->json([
-                'slug' => $user->employee_id,
-                'token' => $token,
-                'permissions' => $permission,
-                'role' => $role,
-            ],200);
+                'message' => 'Admin registered successfully.',
+                'user'    => $user
+            ], 201);
 
-        }catch (Exception $e) {
-            DB::rollBack();
+        } catch (\Exception $e) {
             return response()->json([
-                'status' => 'Bad Request! Could not process the registration.',
+                'status' => 'Failed to register admin.',
                 'message' => $e->getMessage()
-            ], 400);
+            ], 500);
         }
     }
 
     public function login(Request $request)
     {
         try {
-            $credentials = [
-                'email'    => $request->email,
-                'password' => $request->password
-            ];
+            $key = 'login:' . $request->ip();
+
+            if (RateLimiter::tooManyAttempts($key, 5)) {
+                return response()->json([
+                    'message' => 'Too many login attempts. Try again in 1 minute.'
+                ], 429);
+            }
+
+            $request->validate([
+                'email'    => ['required', 'email'],
+                'password' => ['required', 'string']
+            ]);
 
             $user = User::where('email', $request->email)->first();
 
-            if ($user && Hash::check($request->password, $user->password)) {
-                $token = $user->createToken('SMS')->accessToken;
-
-                $role = Role::where('slug',$user->role_slug)->pluck('name')->first();
-                $role_permissions = RolePermission::where('role_slug',$user->role_slug)->get();
-
-                $permission = [];
-
-                foreach($role_permissions as $role_permission){
-                    $permission [] = Permission::where('slug',$role_permission->permission_slug)->pluck('name')->first();
-                }
-                return response()->json([
-                    'slug' => $user->employee_slug,
-                    'token' => $token,
-                    'permissions' => $permission,
-                    'role' => $role,
-                ],200);
-            }else{
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                RateLimiter::hit($key, 60); // Block for 60 seconds
                 return response()->json([
                     'status' => 'Unauthorized! Invalid email or password.'
                 ], 401);
             }
+
+            RateLimiter::clear($key); // Reset throttle
+
+            // Generate access token
+            $token = $user->createToken('AdminPanel')->accessToken;
+
+            // Get role and permissions
+            $role = Role::where('slug', $user->role_slug)->value('name');
+
+            $permissions = RolePermission::where('role_slug', $user->role_slug)
+                ->pluck('permission_slug')
+                ->map(function ($slug) {
+                    return Permission::where('slug', $slug)->value('name');
+                })
+                ->filter()
+                ->values();
+
+            return response()->json([
+                'slug'        => $user->employee_slug,
+                'token'       => $token,
+                'permissions' => $permissions,
+                'role'        => $role,
+            ], 200);
         } catch (Exception $e) {
+            Log::error('Login error', ['error' => $e->getMessage()]);
+
             return response()->json([
-                'status' => 'Bad Request! Could not process the login.',
+                'status'  => 'Error',
+                'message' => 'Could not process the login. Please try again later.',
+            ], 500);
+        }
+    }
+
+    public function logout()
+    {
+        try {
+            $user = auth()->guard('api')->user();
+
+            if (!$user || !$user->token()) {
+                return response()->json([
+                    'status' => 'Unauthorized! No active session found.'
+                ], 401);
+            }
+
+            $user->token()->delete(); // Only logs out current device
+
+            return response()->json([
+                'message' => 'Logged out successfully.',
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Logout failed.',
                 'message' => $e->getMessage()
-            ], 400);
+            ], 500);
         }
     }
 
-    public function logout(){
-        $user = auth()->guard('api')->user();
 
-        if ($user) {
-            $user->tokens->each(function ($token) {
-                $token->delete();
-            });
+    public function me(Request $request)
+    {
+        try {
+            $user = auth()->guard('api')->user();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 'Unauthorized! No active session found.'
+                ], 401);
+            }
+
+            $role = Role::where('slug', $user->role_slug)->value('name');
+
+            $permissionSlugs = RolePermission::where('role_slug', $user->role_slug)
+                ->pluck('permission_slug');
+
+            $permissions = Permission::whereIn('slug', $permissionSlugs)
+                ->pluck('name')
+                ->toArray();
 
             return response()->json([
-                'message' => "Logout Successfully",
-            ],200);
-        }else{
+                'slug' => $user->slug,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $role,
+                'permissions' => $permissions,
+            ], 200);
+
+        } catch (\Exception $e) {
             return response()->json([
-                'status' => 'Unauthorized! No active session found.'
-            ], 401);
+                'status' => 'Could not retrieve user.',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function me (Request $request) {
-
-        $user = auth()->guard('api')->user();
-
-        $name = $user->name;
-
-        $role = Role::where('slug',$user->role_slug)->pluck('name')->first();
-
-        $role_permissions = RolePermission::where('role_slug',$user->role_slug)->get();
-
-        $permissionIds = [];
-
-        foreach($role_permissions as $role_permission){
-            $permissionIds[] = $role_permission->permission_slug;
-        }
-
-        $permission = [];
-
-        foreach($permissionIds as $permissionId){
-            $permission[] = Permission::where('slug',$permissionId)->pluck('name')->first();
-        }
-
-        $data = [
-            'slug' => $user->slug,
-            'name' => $name,
-            'email' => $user->email,
-            'role' => $role,
-            // 'permissions' => $permission,
-        ];
-
-        if(!$data) {
-            return response()->json([
-                'status' => 'Unauthorized! No active session found.'
-            ], 401);
-        }
-
-        return response()->json($data,200);
-    }
 
     public function index(Request $request){
         try {

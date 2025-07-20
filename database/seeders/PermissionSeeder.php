@@ -14,26 +14,23 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            ["name" => "user-create"],
-            ["name" => "user-read"],
-            ["name" => "user-update"],
-            ["name" => "user-delete"],
-            ["name" => "role-create"],
-            ["name" => "role-read"],
-            ["name" => "role-update"],
+            ["name" => "user.view"],
+            ["name" => "user.create"],
+            ["name" => "user.edit"],
+            ["name" => "user.delete"],
+            ["name" => "role.view"],
+            ["name" => "role.create"],
+            ["name" => "role-edit"],
             ["name" => "role-delete"],
-            ["name" => "permission-create"],
-            ["name" => "permission-read"],
+            ["name" => "permission.view"],
+            ["name" => "permission.assign"],
             ["name" => "permission-update"],
             ["name" => "permission-delete"],
             ["name" => "student-create"],
-            ["name" => "student-read"],
-            ["name" => "student-update"],
-            ["name" => "student-delete"],
-            ["name" => "academic_year-create"],
-            ["name" => "academic_year-read"],
-            ["name" => "academic_year-update"],
-            ["name" => "academic_year-delete"],
+            ["name" => "dashboard.view"],
+            ["name" => "audit.view"],
+            ["name" => "profile.view"],
+            ["name" => "profile.eidt"]
         ];
 
         foreach($permissions as $permission){

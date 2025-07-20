@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('role_permissions', function (Blueprint $table) {
             $table->id();
-
+            $table->string('slug')->unique();
             $table->string('role_slug');
             $table->string('permission_slug');
 
