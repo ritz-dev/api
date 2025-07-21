@@ -12,14 +12,19 @@ Route::get('/', function () {
 });
 
 Route::post('/login',[AuthController::class,'login']);
-
 Route::post('/register',[AuthController::class,'register']);
+Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [AuthController::class, 'reset']);
 
 Route::prefix('finance')->group(function () {
     Route::any('{endpoint}', [ApiGatewayController::class, 'handleFinanceService'])->where('endpoint', '.*');
 });
 
 Route::middleware('auth:api')->group(function(){
+
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/logout',[AuthController::class,'logout']);
+    Route::get('/me',[AuthController::class,'me']);
 
     Route::prefix('user')->group(function () {
         Route::any('{endpoint}', [ApiGatewayController::class, 'handleUserService'])->where('endpoint', '.*');

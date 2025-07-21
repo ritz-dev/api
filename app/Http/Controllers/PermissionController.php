@@ -10,15 +10,20 @@ use Illuminate\Http\Request;
 class PermissionController extends Controller
 {
     public function list(Request $request){
-        try{
-            $limit = (int)$request->limit;
-            $search = $request->search;
+        try {
 
-            $query = Permission::select('slug','name')->orderBy('id','desc');
-            if($search){
-                $query->where('name','LIKE',$search.'%');
-            }
-            $data = $limit ? $query->paginate($limit) : $query->get();
+            $query = Permission::select('slug', 'name')->orderBy('id', 'desc');
+
+            $data = $query->get();
+
+            // Map the data to encrypt slug and name
+            $data->getCollection()->transform(function ($item) {
+                return [
+                    'slug' => $this->encryptFixed36($item->slug),
+                    'name' => $this->encryptFixed36($item->name),
+                    'description' => $this->encryptFixed36($item->description)
+                ];
+            });
 
             $total = Permission::count();
 
@@ -26,12 +31,12 @@ class PermissionController extends Controller
                 'status' => "OK! The request was successful.",
                 'data' => $data,
                 'total' => $total
-            ],200);
-        }catch(Exception $e){
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
-                'status' => 'Bad Request!. The request is invalid.',
+                'status' => 'Bad Request! The request is invalid.',
                 'message' => $e->getMessage()
-            ],400);
+            ], 400);
         }
     }
 
