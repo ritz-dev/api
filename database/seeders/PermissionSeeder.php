@@ -26,10 +26,10 @@ class PermissionSeeder extends Seeder
 
             ["name" => "permission.view", "description" => "View all permissions"],
             ["name" => "permission.assign", "description" => "Assign permissions to roles"],
-            ["name" => "permission-update", "description" => "Update permission details"],
-            ["name" => "permission-delete", "description" => "Delete permissions"],
+            ["name" => "permission.update", "description" => "Update permission details"],
+            ["name" => "permission.delete", "description" => "Delete permissions"],
 
-            ["name" => "student-create", "description" => "Create new student records"],
+            ["name" => "student.create", "description" => "Create new student records"],
 
             ["name" => "dashboard.view", "description" => "Access dashboard analytics and reports"],
             ["name" => "audit.view", "description" => "View activity and audit logs"],
