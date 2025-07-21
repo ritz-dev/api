@@ -10,10 +10,10 @@ use App\Http\Controllers\Controller;
 
 class PermissionController extends Controller
 {
-    public function list(Request $request){
+    public function index(Request $request){
         try {
 
-            $query = Permission::select('slug', 'name')->orderBy('id', 'desc');
+            $query = Permission::orderBy('id', 'desc');
 
             $data = $query->get();
 
