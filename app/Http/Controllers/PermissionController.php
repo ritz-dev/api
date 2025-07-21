@@ -18,13 +18,13 @@ class PermissionController extends Controller
             $data = $query->get();
 
             // Map the data to encrypt slug and name
-            $data->transform(function ($item) {
-                return [
-                    'slug' => $this->encryptFixed36($item->slug),
-                    'name' => $this->encryptFixed36($item->name),
-                    'description' => $this->encryptFixed36($item->description)
-                ];
-            });
+            // $data->transform(function ($item) {
+            //     return [
+            //         'slug' => $this->encryptFixed36($item->slug),
+            //         'name' => $this->encryptFixed36($item->name),
+            //         'description' => $this->encryptFixed36($item->description)
+            //     ];
+            // });
 
             $total = Permission::count();
 
