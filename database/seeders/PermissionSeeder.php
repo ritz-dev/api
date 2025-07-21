@@ -21,8 +21,8 @@ class PermissionSeeder extends Seeder
 
             ["name" => "role.view", "description" => "View roles and permissions"],
             ["name" => "role.create", "description" => "Create new roles"],
-            ["name" => "role-edit", "description" => "Edit roles"],
-            ["name" => "role-delete", "description" => "Delete roles"],
+            ["name" => "role.edit", "description" => "Edit roles"],
+            ["name" => "role.delete", "description" => "Delete roles"],
 
             ["name" => "permission.view", "description" => "View all permissions"],
             ["name" => "permission.assign", "description" => "Assign permissions to roles"],
