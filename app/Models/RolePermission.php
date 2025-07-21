@@ -13,7 +13,6 @@ class RolePermission extends Model
     protected $table = "role_permissions";
 
     protected $fillable = [
-        "slug",
         "role_slug",
         "permission_slug",
         "description"
@@ -25,15 +24,4 @@ class RolePermission extends Model
         "updated_at",
         "deleted_at"
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if(empty($model->slug)){
-                $model->slug = (string) Guid::uuid4();
-            }
-        });
-    }
 }
