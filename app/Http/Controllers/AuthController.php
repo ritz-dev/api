@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Password;
@@ -74,36 +75,43 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            // Rate limiter key based on client IP
             $key = 'login:' . $request->ip();
 
+            // Limit to 5 attempts per minute
             if (RateLimiter::tooManyAttempts($key, 5)) {
                 return response()->json([
                     'message' => 'Too many login attempts. Try again in 1 minute.'
                 ], 429);
             }
 
+            // Validate input
             $request->validate([
                 'email'    => ['required', 'email'],
                 'password' => ['required', 'string']
             ]);
 
+            // Check user existence
             $user = User::where('email', $request->email)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
-                RateLimiter::hit($key, 60); // Block for 60 seconds
+                RateLimiter::hit($key, 60); // Throttle for 60 seconds
                 return response()->json([
-                    'status' => 'Unauthorized! Invalid email or password.'
+                    'status'  => 'error',
+                    'message' => 'Invalid email or password.'
                 ], 401);
             }
 
-            RateLimiter::clear($key); // Reset throttle
+            // Clear rate limit
+            RateLimiter::clear($key);
 
-            // Generate access token
+            // Create access token (OAuth2 via Passport)
             $token = $user->createToken('AdminPanel')->accessToken;
 
-            // Get role and permissions
+            // Get role name from role_slug
             $role = Role::where('slug', $user->role_slug)->value('name');
 
+            // Get permission names from role-permissions
             $permissions = RolePermission::where('role_slug', $user->role_slug)
                 ->pluck('permission_slug')
                 ->map(function ($slug) {
@@ -118,12 +126,17 @@ class AuthController extends Controller
                 'permissions' => $permissions,
                 'role'        => $role,
             ], 200);
-        } catch (Exception $e) {
-            Log::error('Login error', ['error' => $e->getMessage()]);
+            
+        } catch (\Throwable $e) {
+            // Log exception details
+            Log::error('Login error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
-                'status'  => 'Error',
-                'message' => 'Could not process the login. Please try again later.',
+                'status'  => 'error',
+                'message' => 'An error occurred during login. Please try again later.'
             ], 500);
         }
     }
@@ -131,24 +144,32 @@ class AuthController extends Controller
     public function logout()
     {
         try {
+            // Get the authenticated user via the API guard
             $user = auth()->guard('api')->user();
 
+            // Check for valid user session
             if (!$user || !$user->token()) {
                 return response()->json([
-                    'status' => 'Unauthorized! No active session found.'
+                    'status'  => 'error',
+                    'message' => 'Unauthorized. No active session found.'
                 ], 401);
             }
 
-            $user->token()->delete(); // Only logs out current device
+            // Revoke the token (only logs out current device/session)
+            $user->token()->revoke();
 
             return response()->json([
-                'message' => 'Logged out successfully.',
+                'status'  => 'success',
+                'message' => 'Logged out successfully.'
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // Log error for debugging and alerting
+            \Log::error('Logout error', ['error' => $e->getMessage()]);
+
             return response()->json([
-                'status' => 'Logout failed.',
-                'message' => $e->getMessage()
+                'status'  => 'error',
+                'message' => 'Logout failed. Please try again.'
             ], 500);
         }
     }
@@ -157,274 +178,174 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         try {
+            // Get the authenticated user from the API guard
             $user = auth()->guard('api')->user();
 
             if (!$user) {
                 return response()->json([
-                    'status' => 'Unauthorized! No active session found.'
+                    'status'  => 'error',
+                    'message' => 'Unauthorized. No active session found.'
                 ], 401);
             }
 
+            // Fetch role name from role_slug
             $role = Role::where('slug', $user->role_slug)->value('name');
 
-            $permissionSlugs = RolePermission::where('role_slug', $user->role_slug)
-                ->pluck('permission_slug');
-
-            $permissions = Permission::whereIn('slug', $permissionSlugs)
+            // Fetch permission names via optimized query
+            $permissions = Permission::whereIn('slug', function ($query) use ($user) {
+                    $query->select('permission_slug')
+                        ->from('role_permissions')
+                        ->where('role_slug', $user->role_slug);
+                })
                 ->pluck('name')
                 ->toArray();
 
             return response()->json([
-                'slug' => $user->slug,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $role,
-                'permissions' => $permissions,
+                'status'      => 'success',
+                'data'        => [
+                    'slug'        => $user->slug,
+                    'name'        => $user->name,
+                    'email'       => $user->email,
+                    'role'        => $role,
+                    'permissions' => $permissions,
+                ]
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Log::error('User profile retrieval failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
             return response()->json([
-                'status' => 'Could not retrieve user.',
-                'message' => $e->getMessage()
+                'status'  => 'error',
+                'message' => 'Could not retrieve user. Please try again later.'
             ], 500);
         }
     }
 
     public function reset(Request $request)
     {
-        $request->validate([
-            'token'    => 'required',
-            'email'    => 'required|email',
-            'password' => 'required|confirmed|min:8',
-        ]);
+        try {
+            $request->validate([
+                'token'    => 'required|string',
+                'email'    => 'required|email',
+                'password' => 'required|confirmed|min:8',
+            ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill(['password' => Hash::make($password)])->save();
+            $status = Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) {
+                    $user->forceFill([
+                        'password' => Hash::make($password)
+                    ])->save();
+
+                    // Invalidate all tokens (log out all sessions)
+                    $user->tokens()->delete();
+
+                    event(new \Illuminate\Auth\Events\PasswordReset($user));
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Password has been reset successfully.'
+                ], 200);
             }
-        );
 
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json(['message' => 'Password reset successfully']);
+            throw ValidationException::withMessages([
+                'email' => [__($status)],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'validation_error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Password reset error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to reset password. Please try again later.',
+            ], 500);
         }
-
-        throw ValidationException::withMessages(['email' => [__($status)]]);
     }
 
     public function changePassword(Request $request)
     {
-        $request->validate([
-            'current_password' => 'required',
-            'new_password'     => 'required|min:8|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'current_password' => 'required|string',
+                'new_password'     => 'required|string|min:8|confirmed|different:current_password',
+            ]);
 
-        $user = $request->user();
+            $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Current password is incorrect'], 422);
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Current password is incorrect.'
+                ], 422);
+            }
+
+            $user->forceFill([
+                'password' => Hash::make($request->new_password)
+            ])->save();
+
+            $user->tokens()->delete();
+
+            event(new \Illuminate\Auth\Events\PasswordReset($user));
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Password changed successfully.'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'validation_error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Change password error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to change password. Please try again later.',
+            ], 500);
         }
-
-        $user->update(['password' => Hash::make($request->new_password)]);
-
-        return response()->json(['message' => 'Password changed successfully']);
     }
 
     public function sendResetLinkEmail(Request $request)
     {
-        $request->validate(['email' => 'required|email|exists:users,email']);
-
-        $status = Password::sendResetLink($request->only('email'));
-
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => 'Reset link sent.']);
-        }
-
-        return response()->json(['message' => 'Unable to send reset link.'], 500);
-    }
-
-
-    public function index(Request $request){
         try {
-            
-            $validated = $request->validate([
-                'search'    => ['nullable', 'string'],
-                'orderBy'   => ['nullable', 'in:id,name,email'], // ← adjust allowed columns
-                'sortedBy'  => ['nullable', 'in:asc,desc'],
-                'limit'     => ['nullable', 'integer', 'min:1'],
-                'skip'      => ['nullable', 'integer', 'min:0'],
-            ]);
-
-            $query = User::with('role')
-                ->when(!empty($validated['search']), fn($q) =>
-                    $q->where('name', 'like', $validated['search'].'%'))
-                ->when(!empty($validated['orderBy']), function ($q) use ($validated) {
-                    $q->orderBy($validated['orderBy'], $validated['sortedBy'] ?? 'asc');
-                }, fn($q) => $q->orderByDesc('id')); // default order
-
-            $total = (clone $query)->count();
-
-            if (!empty($validated['skip']))  $query->skip($validated['skip']);
-            if (!empty($validated['limit'])) $query->take($validated['limit']);
-
-            $users = $query->get();
-            $data  = UserResource::collection($users);
-
-            return response()->json([
-                'status' => 'OK! The request was successful.',
-                'total'  => $total,
-                'data'   => $data,
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'Bad Request! The request is invalid.',
-                'message' => $e->getMessage(),
-            ], 400);
-        }
-    }
-
-    public function show(Request $request){
-
-        $request->validate([
-            'slug' => 'required|string',
-        ]);
-
-        try{
-            $query = User::with(['role'])->where('slug',$request->slug)->orderBy('id','desc')->first();
-
-            $data =new UserResource($query);
-
-            return response()->json($data,200);
-        }catch(Exception $e){
-            return response()->json([
-                'error' => 'Bad Request!. The request is invalid.',
-                'message' => $e->getMessage()
-            ],400);
-        }
-    }
-
-    public function store (Request $request){
-        try{
             $request->validate([
-                'name' => 'required|string',
-                'email' => 'required|email|unique:users,email',
-                'status' => 'required|string',
+                'email' => 'required|email|exists:users,email'
             ]);
 
-            $user = new User;
-            $user->slug = Str::uuid();
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->password = Hash::make($request->password);
-            $user->role_slug = $request->role_slug;
-            $user->status = $request->status;
-            $user->save();
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
+
+            if ($status === Password::RESET_LINK_SENT) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'A password reset link has been sent to your email address.'
+                ], 200);
+            }
 
             return response()->json([
-                'status' => "Created successful.",
-            ],200);
-
-        }catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'Validation error.',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (Throwable $e) {
-            return response()->json([
-                'status' => 'An error occurred while adding.',
-                'message' => $e->getMessage(),
+                'status'  => 'error',
+                'message' => 'Unable to send reset link. Please try again later.'
             ], 500);
-        }
-    }
-
-    public function update(Request $request) {
-        try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => [
-                    'required',
-                    'email',
-                    Rule::unique('users')->ignore($request->slug, 'slug'),
-                ],
-                'status' => 'required|string',
-            ]);
-    
-            $user = User::where('slug', $request->slug)->firstOrFail();
-
-            $user->update([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'status' => $validatedData['status'],
-                'role_id' => 1,
-            ]);
-    
-            return response()->json([
-                'status' => "Updated successfully.",
-            ], 200);
-    
         } catch (ValidationException $e) {
             return response()->json([
-                'status' => 'Validation error.',
+                'status' => 'validation_error',
                 'errors' => $e->errors(),
             ], 422);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
+            Log::error('Send reset link email error', ['error' => $e->getMessage()]);
             return response()->json([
-                'status' => 'An error occurred while updating.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function password(Request $request) {
-        try {
-            $validatedData = $request->validate([
-                
-                'password' => 'required|string|min:6',
-            ]);
-    
-            $user = User::where('slug', $request->slug)->firstOrFail();
-
-            $user->update([
-                'password' => Hash::make($validatedData['password']),
-            ]);
-    
-            return response()->json([
-                'status' => "Updated successfully.",
-            ], 200);
-    
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'Validation error.',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (Throwable $e) {
-            return response()->json([
-                'status' => 'An error occurred while updating.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function delete(Request $request) {
-        $validated = $request->validate([
-            'slug' => 'required|string', // Ensure the ID exists in the database
-        ]);
-
-        try {
-            $user = User::where('slug', $request->slug)->firstOrFail();
-            $user->delete();
-            return response()->json(['message' => 'User deleted successfully'], 200);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'Validation error.',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (Throwable $e) {
-            return response()->json([
-                'status' => 'An error occurred while updating.',
-                'message' => $e->getMessage(),
+                'status'  => 'error',
+                'message' => 'Failed to send reset link. Please try again later.',
             ], 500);
         }
     }

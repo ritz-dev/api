@@ -8,16 +8,20 @@ use App\Models\Permission;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
+    /**
+     * Display a listing of roles with optional search, sorting, pagination.
+     */
     public function index(Request $request)
     {
         try {
-
             $validated = $request->validate([
                 'search'    => ['nullable', 'string'],
                 'orderBy'   => ['nullable', 'in:id,name,slug'],
@@ -26,185 +30,235 @@ class RoleController extends Controller
                 'skip'      => ['nullable', 'integer', 'min:0'],
             ]);
 
+            // Build query with eager loaded permissions
             $query = Role::with('permissions')
-                ->when(!empty($validated['search']),  fn ($q) => $q->where('name', 'like', $validated['search'].'%'))
+                ->when(!empty($validated['search']), fn($q) => 
+                    $q->where('name', 'like', $validated['search'].'%')
+                )
                 ->when(!empty($validated['orderBy']), function ($q) use ($validated) {
-                    // use provided column & direction
                     $q->orderBy($validated['orderBy'], $validated['sortedBy'] ?? 'asc');
-                }, fn ($q) => $q->orderByDesc('id'));
-           
+                }, fn($q) => $q->orderByDesc('id'));
+
+            // Get total count before pagination
             $total = (clone $query)->count();
 
-            if (!empty($validated['skip']))   { $query->skip($validated['skip']); }
-            if (!empty($validated['limit']))  { $query->take($validated['limit']); }
+            if (!empty($validated['skip'])) {
+                $query->skip($validated['skip']);
+            }
+            if (!empty($validated['limit'])) {
+                $query->take($validated['limit']);
+            }
 
+            // Execute query and transform
             $roles = $query->get();
-            $data  = RoleResource::collection($roles);
-
-            logger($roles);
 
             return response()->json([
-                'status' => 'OK! The request was successful.',
+                'status' => 'success',
                 'total'  => $total,
-                'data'   => $data,
+                'data'   => RoleResource::collection($roles),
             ], 200);
 
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
+            // Validation errors
             return response()->json([
-                'error'   => 'Bad Request! The request is invalid.',
-                'message' => $e->getMessage(),
-            ], 400);
+                'status' => 'validation_error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            // Log unexpected errors
+            Log::error('Role index error', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to retrieve roles.',
+            ], 500);
         }
     }
 
-    public function show(Request $request){
-
+    /**
+     * Show a single role by slug with its permissions.
+     */
+    public function show(Request $request)
+    {
         $request->validate([
-            'slug' => 'required|string',
+            'slug' => 'required|string|exists:roles,slug',
         ]);
-        
-        try{
-            $query = Role::with(['permissions'])->where('slug',$request->slug)->orderBy('id','desc')->first();
 
-            $data = new RoleResource($query);
+        try {
+            $role = Role::with('permissions')->where('slug', $request->slug)->firstOrFail();
 
-            return response()->json($data,200);
-        } catch(Exception $e){
+            return response()->json(new RoleResource($role), 200);
+        } catch (ModelNotFoundException $e) {
             return response()->json([
-                'error' => 'Bad Request!. The request is invalid.',
-                'message' => $e->getMessage()
-            ],400);
+                'status' => 'not_found',
+                'message' => 'Role not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Role show error', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to retrieve the role.',
+            ], 500);
         }
     }
 
-    public function store(Request $request){
-        try{
-            
-            $request->validate([
-                'name' => ['required', 'string'],
-                'permissions' => ['required', 'array']
-            ]);
+    /**
+     * Store a newly created role with permissions.
+     */
+    public function store(Request $request)
+    {
+        // Validate role name uniqueness and permissions array
+        $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
+            'permissions' => ['required', 'array', 'min:1'],
+            'permissions.*' => ['string'],
+        ]);
 
-            DB::beginTransaction();
+        DB::beginTransaction();
 
+        try {
+            // Create role with UUID slug
             $role = new Role;
-            $role->slug = Str::uuid();
+            $role->slug = (string) Str::uuid();
             $role->name = $request->name;
             $role->save();
 
-            $permissionIds = collect($request->permissions)->map(function ($permissionName) use ($role) {
+            // Find or create permissions and collect their slugs
+            $permissionSlugs = collect($request->permissions)->map(function ($permissionName) {
+                $permission = Permission::firstOrCreate(
+                    ['name' => $permissionName],
+                    ['slug' => (string) Str::uuid()]
+                );
+                return $permission->slug;
+            })->all();
 
-                $permission = Permission::where('name', $permissionName)->first();
-
-                if(!$permission){
-                    $permission = new Permission;
-                    $permission->name = $permissionName;
-                    $permission->save();
-                    return $permission->slug;
-                }else{
-                    return $permission->slug;
-                }
-            })->filter()->all();
-
-            $role->permissions()->attach($permissionIds);
+            // Attach permissions to the role
+            $role->permissions()->attach($permissionSlugs);
 
             DB::commit();
 
             return response()->json([
-                'status' => "OK! The request was successful.",
-            ],200);
+                'status'  => 'success',
+                'message' => 'Role created successfully.',
+                'data'    => new RoleResource($role->fresh('permissions')),
+            ], 201);
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
             DB::rollBack();
+
+            Log::error('Role store error', ['error' => $e->getMessage()]);
+
             return response()->json([
-                'status' => 'An error occurred while adding.',
-                'message' => $e->getMessage()
+                'status'  => 'error',
+                'message' => 'Failed to create role.',
             ], 500);
         }
     }
 
-    public function update(Request $request){
-        try {
-            
-
-            $request->validate([
-                'slug' => ['nullable', 'string', 'exists:roles,slug'],
-                'name' => ['required', 'string'],
-                'permissions' => ['required', 'array']
-            ]);
-
-            DB::beginTransaction();
-
-            $role = Role::with('permissions')->where('slug',$request->slug)->firstOrFail();
-            $role->name = $request->name;
-            $role->save();
-
-            $permissionsArray = $request->permissions;
-
-            $permissionIds = collect($permissionsArray)->map(function ($permissionName) {
-
-                $permission = Permission::where('name', $permissionName)->first();
-                if(!$permission){
-                    $permission = new Permission;
-                    $permission->name = $permissionName;
-                    $permission->save();
-                    return $permission->slug;
-                }else{
-                    return $permission->slug;
-                }
-            })->filter()->all();
-
-            $role->permissions()->sync($permissionIds);
-
-            DB::commit();
-
-            return response()->json(["status" => "OK! The request was successful."],200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'status' => 'An error occurred while updating the role.',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function delete(Request $request){
-        $validated = $request->validate([
-            'slug' => 'required|string', // Ensure the ID exists in the database
+    /**
+     * Update an existing role and sync permissions.
+     */
+    public function update(Request $request)
+    {
+        $request->validate([
+            'slug' => ['required', 'string', 'exists:roles,slug'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($request->slug, 'slug')],
+            'permissions' => ['required', 'array', 'min:1'],
+            'permissions.*' => ['string'],
         ]);
 
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
+            $role = Role::where('slug', $request->slug)->firstOrFail();
 
-            $role = Role::where('slug',$request->slug)->firstOrFail();
+            // Update role name
+            $role->name = $request->name;
+            $role->save();
 
+            // Find or create permissions
+            $permissionSlugs = collect($request->permissions)->map(function ($permissionName) {
+                $permission = Permission::firstOrCreate(
+                    ['name' => $permissionName],
+                    ['slug' => (string) Str::uuid()]
+                );
+                return $permission->slug;
+            })->all();
+
+            // Sync permissions to role
+            $role->permissions()->sync($permissionSlugs);
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Role updated successfully.',
+                'data'    => new RoleResource($role->fresh('permissions')),
+            ], 200);
+
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'not_found',
+                'message' => 'Role not found.',
+            ], 404);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            Log::error('Role update error', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to update role.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a role and detach all its permissions.
+     */
+    public function delete(Request $request)
+    {
+        $request->validate([
+            'slug' => 'required|string|exists:roles,slug',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $role = Role::where('slug', $request->slug)->firstOrFail();
+
+            // Detach all permissions related to the role
             $role->permissions()->detach();
 
+            // Delete the role
             $role->delete();
 
             DB::commit();
 
             return response()->json([
-                'status' => 'OK! The request was successful.',
+                'status'  => 'success',
+                'message' => 'Role deleted successfully.',
             ], 200);
 
-        }catch (ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             DB::rollBack();
 
             return response()->json([
-                'status' => 'Role does not exist.',
-                'message' => $e->getMessage(),
+                'status' => 'not_found',
+                'message' => 'Role not found.',
             ], 404);
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
+            Log::error('Role delete error', ['error' => $e->getMessage()]);
+
             return response()->json([
-                'status' => 'An error occurred while deleting the role.',
-                'message' => $e->getMessage(),
+                'status'  => 'error',
+                'message' => 'Failed to delete role.',
             ], 500);
         }
     }
-
 }
