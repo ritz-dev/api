@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -78,12 +79,12 @@ class UserController extends Controller
     {
 
         try {
-            $request->validate([
-                'slug' => 'required|string',
+            $validated = $request->validate([
+                'slug' => ['required', 'string', 'exists:users,slug'],
             ]);
 
             $user = User::with('role')
-                ->where('slug', $request->slug)
+                ->where('slug', $validated['slug'])
                 ->first();
 
             // If no user found, return a 404
@@ -100,7 +101,12 @@ class UserController extends Controller
                 'data'    => new UserResource($user),
             ], 200);
 
-        } catch (\Throwable $e) {
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'validation_error',
+                'errors' => $e->errors(),
+            ], 422);
+        }  catch (\Throwable $e) {
             \Log::error('User retrieval failed', [
                 'slug' => $request->slug,
                 'error' => $e->getMessage(),
@@ -117,27 +123,34 @@ class UserController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validate request
             $validated = $request->validate([
-                'name'      => 'required|string|max:255',
-                'email'     => 'required|email|unique:users,email',
-                'password'  => 'required|string|min:8|confirmed',
-                'role_slug' => 'required|string|exists:roles,slug',
-                'status'    => 'required|string|in:active,inactive,pending', // adjust statuses
+                'name'      => ['required', 'string', 'max:255'],
+                'email'     => ['required', 'email', 'unique:users,email'],
+                'password'  => ['required', 'string', 'min:8', 'confirmed'],
+                'role_slug' => ['required', 'string', 'exists:roles,slug'],
+                'status'    => ['required', 'string', 'in:active,inactive,pending'],
             ]);
 
             $currentUser = Auth::user();
 
-            // Prevent assigning "super-admin" unless current user is "super-admin"
-            if ($validated['role_slug'] === 'super-admin' && $currentUser->role_slug !== 'super-admin') {
+            $role = Role::where('name', 'Super Admin')->first();
+
+            // Prevent assigning "super-admin" unless user is one
+            if (
+                $role->slug === $validated['role_slug'] &&
+                $currentUser->role_slug !== $role->slug
+            ) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'You are not allowed to assign the super-admin role.',
+                    'message' => 'You are not authorized to assign the super-admin role.',
                 ], 403);
             }
 
-            // Create user
+            // Create user inside transaction
+            DB::beginTransaction();
+
             $user = User::create([
-                'slug'      => (string) Str::uuid(),
                 'name'      => $validated['name'],
                 'email'     => $validated['email'],
                 'password'  => Hash::make($validated['password']),
@@ -145,11 +158,13 @@ class UserController extends Controller
                 'status'    => $validated['status'],
             ]);
 
+            DB::commit();
+
             return response()->json([
                 'status'  => 'success',
                 'message' => 'User created successfully.',
                 'data'    => new UserResource($user),
-            ], 201); // 201 Created
+            ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
@@ -157,7 +172,15 @@ class UserController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Throwable $e) {
-            \Log::error('User creation failed', ['error' => $e->getMessage()]);
+            DB::rollBack();
+
+            \Log::error('User creation failed', [
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+                'user_id' => Auth::id(),
+            ]);
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'An error occurred while creating the user.',
@@ -165,50 +188,64 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, string $slug)
+
+    public function update(Request $request)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => [
-                    'required',
-                    'email',
-                    Rule::unique('users')->ignore($slug, 'slug'),
-                ],
-                'status' => 'required|string|in:active,inactive,pending', // adjust statuses
-                'role_slug' => 'required|string|exists:roles,slug',
+            // Validate request
+            $validated = $request->validate([
+                'slug'      => ['required', 'string', 'exists:users,slug'],
+                'name'      => ['required', 'string', 'max:255'],
+                'email'     => ['required', 'email', 'unique:users,email,' . $request->slug . ',slug'],
+                'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
+                'role_slug' => ['required', 'string', 'exists:roles,slug'],
+                'status'    => ['required', 'string', 'in:active,inactive,pending'],
             ]);
 
             $currentUser = Auth::user();
 
-            $user = User::where('slug', $slug)->firstOrFail();
+            $user = User::where('slug', $validated['slug'])->first();
 
-            // Prevent non-super-admin from modifying super-admin users
-            if ($user->role_slug === 'super-admin' && $currentUser->role_slug !== 'super-admin') {
+            if( !$user) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'User not found.',
+                ], 404);
+            }
+
+            $role = Role::where('name', 'Super Admin')->first();
+            // Prevent unauthorized super-admin access
+            if (
+                $user->role_slug === $role->slug &&
+                $currentUser->role_slug !== $role->slug
+            ) {
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'You are not authorized to update a super-admin user.',
                 ], 403);
             }
 
-            // Prevent assigning super-admin role unless current user is super-admin
-            if ($validatedData['role_slug'] === 'super-admin' && $currentUser->role_slug !== 'super-admin') {
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'You are not authorized to assign the super-admin role.',
-                ], 403);
+            DB::beginTransaction();
+
+            $updateData = [
+                'name'      => $validated['name'],
+                'email'     => $validated['email'],
+                'status'    => $validated['status'],
+                'role_slug' => $validated['role_slug'],
+            ];
+
+            if (!empty($validated['password'])) {
+                $updateData['password'] = Hash::make($validated['password']);
             }
 
-            $user->update([
-                'name'      => $validatedData['name'],
-                'email'     => $validatedData['email'],
-                'status'    => $validatedData['status'],
-                'role_slug' => $validatedData['role_slug'],
-            ]);
+            $user->update($updateData);
+
+            DB::commit();
 
             return response()->json([
                 'status'  => 'success',
                 'message' => 'User updated successfully.',
+                'data'    => new UserResource($user),
             ], 200);
 
         } catch (ValidationException $e) {
@@ -217,7 +254,15 @@ class UserController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Throwable $e) {
-            \Log::error('User update failed', ['error' => $e->getMessage()]);
+            DB::rollBack();
+
+            \Log::error('User update failed', [
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+                'request' => $request->all(),
+                'user_id' => Auth::id(),
+            ]);
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'An error occurred while updating the user.',
@@ -225,20 +270,36 @@ class UserController extends Controller
         }
     }
 
+
     public function delete(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'slug' => 'required|string',
+            $request->validate([
+                'slug' => ['required', 'exists:users,slug'],
             ]);
 
-            $currentUser = $request->user();
+            $currentUser = Auth::user();
 
-            // Find user to delete
-            $user = User::where('slug', $validated['slug'])->firstOrFail();
+            $user = User::where('slug', $request->slug)->first();
 
-            // Prevent non-super-admin from deleting super-admin users
-            if ($user->role_slug === 'super-admin' && $currentUser->role_slug !== 'super-admin') {
+            if( !$user) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'User not found.',
+                ], 404);
+            }
+
+            $role = Role::where('name', 'Super Admin')->first();
+
+            if( !$role) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Role not found.',
+                ], 404);
+            }
+
+            // Prevent deleting super-admin unless current user is also super-admin
+            if ($user->role_slug == $role->slug && $currentUser->role_slug != $role->slug) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not authorized to delete a super-admin user.',
@@ -248,8 +309,8 @@ class UserController extends Controller
             $user->delete();
 
             return response()->json([
-                'status'  => 'success',
-                'message' => 'User deleted successfully.'
+                'status' => 'success',
+                'message' => 'User deleted successfully.',
             ], 200);
 
         } catch (ValidationException $e) {
@@ -260,7 +321,7 @@ class UserController extends Controller
         } catch (\Throwable $e) {
             \Log::error('User deletion failed', ['error' => $e->getMessage()]);
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'An error occurred while deleting the user.',
             ], 500);
         }

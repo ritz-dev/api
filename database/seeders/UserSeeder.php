@@ -52,6 +52,7 @@ class UserSeeder extends Seeder
             'role_slug' => "10000000000000000000000000000000003",
             'employee_slug' => 'viewer',
             'remember_token' => \Illuminate\Support\Str::random(10),
+            'status' => 'inactive',
         ]);
 
         User::create([

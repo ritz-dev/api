@@ -12,7 +12,6 @@ use App\Models\RolePermission;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -39,7 +38,7 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'name'     => ['required', 'string', 'max:255'],
                 'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'string', 'min:8'],
+                'password' => ['required', 'string', 'min:8', 'max:20'],
                 'role_slug'=> ['required', Rule::exists('roles', 'slug')],
             ]);
 
@@ -81,25 +80,32 @@ class AuthController extends Controller
             // Limit to 5 attempts per minute
             if (RateLimiter::tooManyAttempts($key, 5)) {
                 return response()->json([
-                    'message' => 'Too many login attempts. Try again in 1 minute.'
+                    'message' => 'Too many login attempts. Please try again later.'
                 ], 429);
             }
 
             // Validate input
             $request->validate([
                 'email'    => ['required', 'email'],
-                'password' => ['required', 'string']
+                'password' => ['required', 'string', 'min:8', 'max:20'],
             ]);
 
+            $email = strtolower($request->input('email'));
+
             // Check user existence
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $email)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 RateLimiter::hit($key, 60); // Throttle for 60 seconds
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'Invalid email or password.'
+                    'message' => 'Invalid credentials'
                 ], 401);
+            }
+
+            // Check if user is active
+            if ($user && $user->status !== 'active') {
+                return response()->json(['message' => 'Account is locked.'], 403);
             }
 
             // Clear rate limit
@@ -127,7 +133,13 @@ class AuthController extends Controller
                 'role'        => $role,
             ], 200);
             
-        } catch (\Throwable $e) {
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Validation failed.',
+                'errors'  => $e->errors()
+            ], 422);
+        }  catch (\Throwable $e) {
             // Log exception details
             Log::error('Login error', [
                 'error' => $e->getMessage(),
@@ -141,22 +153,56 @@ class AuthController extends Controller
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         try {
-            // Get the authenticated user via the API guard
+            // Rate limiter key per user ID or IP
+            $key = 'logout:' . ($request->user()?->id ?? $request->ip());
+
+            if (RateLimiter::tooManyAttempts($key, 5)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Too many logout attempts. Please try again in ' . RateLimiter::availableIn($key) . ' seconds.',
+                ], 429);
+            }
+
+            // Record an attempt
+            RateLimiter::hit($key, 60); // 60 seconds decay time
+
+            // Get authenticated user from API guard
             $user = auth()->guard('api')->user();
 
-            // Check for valid user session
-            if (!$user || !$user->token()) {
+            if (!$user) {
+                \Log::warning('Logout attempt without authenticated user.');
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'Unauthorized. No active session found.'
                 ], 401);
             }
 
-            // Revoke the token (only logs out current device/session)
-            $user->token()->revoke();
+            $token = $user->token();
+
+            if (!$token) {
+                \Log::warning("User {$user->id} has no active token during logout.");
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No active token found.'
+                ], 401);
+            }
+
+
+            // Revoke the current token (logout current device/session)
+            $token = $user->token();
+
+            if (!$token) {
+                \Log::warning("User {$user->id} has no active token during logout.");
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'No active token found.'
+                ], 401);
+            }
+
+            $token->revoke();
 
             return response()->json([
                 'status'  => 'success',
@@ -164,7 +210,6 @@ class AuthController extends Controller
             ], 200);
 
         } catch (\Throwable $e) {
-            // Log error for debugging and alerting
             \Log::error('Logout error', ['error' => $e->getMessage()]);
 
             return response()->json([
@@ -178,8 +223,18 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         try {
-            // Get the authenticated user from the API guard
+            // Use user ID or IP for rate limiting key
             $user = auth()->guard('api')->user();
+            $key = $user ? 'me:' . $user->id : 'me:' . $request->ip();
+
+            if (RateLimiter::tooManyAttempts($key, 10)) {
+                return response()->json([
+                    'message' => 'Too many requests. Please try again'
+                ], 429);
+            }
+
+            // Record this attempt
+            RateLimiter::hit($key, 60); // 60 seconds decay time
 
             if (!$user) {
                 return response()->json([
@@ -188,21 +243,18 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            // Fetch role name from role_slug
             $role = Role::where('slug', $user->role_slug)->value('name');
 
-            // Fetch permission names via optimized query
             $permissions = Permission::whereIn('slug', function ($query) use ($user) {
-                    $query->select('permission_slug')
-                        ->from('role_permissions')
-                        ->where('role_slug', $user->role_slug);
-                })
-                ->pluck('name')
-                ->toArray();
+                $query->select('permission_slug')
+                    ->from('role_permissions')
+                    ->where('role_slug', $user->role_slug);
+            })->pluck('name')->toArray();
 
             return response()->json([
-                'status'      => 'success',
-                'data'        => [
+                'status'  => 'success',
+                'message' => 'Your information.',
+                'data'    => [
                     'slug'        => $user->slug,
                     'name'        => $user->name,
                     'email'       => $user->email,
@@ -213,7 +265,7 @@ class AuthController extends Controller
 
         } catch (\Throwable $e) {
             \Log::error('User profile retrieval failed', [
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
 
@@ -227,12 +279,24 @@ class AuthController extends Controller
     public function reset(Request $request)
     {
         try {
+            // Use email or fallback IP as rate limit key
+            $key = 'reset-password:' . ($request->input('email') ?? $request->ip());
+
+            // Check if too many attempts
+            if (RateLimiter::tooManyAttempts($key, 5)) {
+                return response()->json([
+                    'message' => 'Too many attempts. Please try again',
+                ], 429);
+            }
+
+            // Validate input
             $request->validate([
                 'token'    => 'required|string',
                 'email'    => 'required|email',
-                'password' => 'required|confirmed|min:8',
+                'password' => 'required|confirmed|min:8|max:20',
             ]);
 
+            // Attempt password reset
             $status = Password::reset(
                 $request->only('email', 'password', 'password_confirmation', 'token'),
                 function ($user, $password) {
@@ -248,22 +312,35 @@ class AuthController extends Controller
             );
 
             if ($status === Password::PASSWORD_RESET) {
+                // Clear rate limiter on success
+                RateLimiter::clear($key);
+
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Password has been reset successfully.'
                 ], 200);
             }
 
+            // Hit rate limiter on failure (invalid token, etc)
+            RateLimiter::hit($key, 600); // 10 minutes lock
+
             throw ValidationException::withMessages([
                 'email' => [__($status)],
             ]);
         } catch (ValidationException $e) {
+            // Hit rate limiter on validation errors
+            RateLimiter::hit($key, 600);
+
             return response()->json([
                 'status' => 'validation_error',
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Throwable $e) {
             Log::error('Password reset error', ['error' => $e->getMessage()]);
+
+            // Optionally hit rate limiter here, but usually it's for validation/reset errors
+            RateLimiter::hit($key, 600);
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to reset password. Please try again later.',
@@ -274,19 +351,33 @@ class AuthController extends Controller
     public function changePassword(Request $request)
     {
         try {
+            // Create a unique rate limiter key per user ID or IP
+            $key = 'change-password:' . ($request->user()?->id ?? $request->ip());
+
+            if (RateLimiter::tooManyAttempts($key, 5)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Too many attempts. Please try again in ' . RateLimiter::availableIn($key) . ' seconds.',
+                ], 429);
+            }
+
             $request->validate([
-                'current_password' => 'required|string',
-                'new_password'     => 'required|string|min:8|confirmed|different:current_password',
+                'current_password' => 'required|string|min:8|max:20',
+                'new_password'     => 'required|string|min:8|max:20|confirmed|different:current_password',
             ]);
 
             $user = $request->user();
 
             if (!Hash::check($request->current_password, $user->password)) {
+                RateLimiter::hit($key, 60); // Increment attempts and block for 60 seconds
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'Current password is incorrect.'
                 ], 422);
             }
+
+            // On successful password check, clear the rate limiter attempts
+            RateLimiter::clear($key);
 
             $user->forceFill([
                 'password' => Hash::make($request->new_password)
@@ -313,6 +404,7 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
 
     public function sendResetLinkEmail(Request $request)
     {

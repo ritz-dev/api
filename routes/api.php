@@ -70,7 +70,6 @@ Route::middleware('auth:api')->group(function () {
         Route::post('show', [UserController::class, 'show']);
         Route::post('update', [UserController::class, 'update']);
         Route::post('delete', [UserController::class, 'delete']);
-        Route::post('change-password', [AuthController::class, 'password']);
     });
 
     // Permission management routes
