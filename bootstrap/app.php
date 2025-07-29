@@ -1,5 +1,6 @@
 <?php
 
+use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Http\Middleware\HandleCors;
@@ -16,7 +17,6 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(HandleCors::class);
-
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);
@@ -25,10 +25,4 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-     // api: [
-    //     'file' => __DIR__.'/../routes/api.php',
-    //     'prefix' => 'api-gateway', // Change the prefix here
-    // ],
-
-    // api: __DIR__.'/../routes/api.php',
 

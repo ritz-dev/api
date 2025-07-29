@@ -7,9 +7,11 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Permission;
 use Illuminate\Support\Str;
+use Laravel\Passport\Token;
 use Illuminate\Http\Request;
 use App\Models\RolePermission;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -156,65 +158,52 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            // Rate limiter key per user ID or IP
-            $key = 'logout:' . ($request->user()?->id ?? $request->ip());
-
+            $key = 'logout:' . $request->ip();
+            
             if (RateLimiter::tooManyAttempts($key, 5)) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'Too many logout attempts. Please try again in ' . RateLimiter::availableIn($key) . ' seconds.',
+                    'message' => 'Too many logout attempts. Please try again later.'
                 ], 429);
             }
 
-            // Record an attempt
-            RateLimiter::hit($key, 60); // 60 seconds decay time
+            RateLimiter::hit($key, 60);
 
-            // Get authenticated user from API guard
-            $user = auth()->guard('api')->user();
+            $user = auth('api')->user();
 
             if (!$user) {
-                \Log::warning('Logout attempt without authenticated user.');
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Unauthorized. No active session found.'
-                ], 401);
-            }
-
-            $token = $user->token();
-
-            if (!$token) {
-                \Log::warning("User {$user->id} has no active token during logout.");
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'No active token found.'
+                    'message' => 'Unauthorized.'
                 ], 401);
             }
 
+            $token = $user->token(); // Only works for personal token type
 
-            // Revoke the current token (logout current device/session)
-            $token = $user->token();
+            if (method_exists($user, 'token') && $token) {
 
-            if (!$token) {
-                \Log::warning("User {$user->id} has no active token during logout.");
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'No active token found.'
-                ], 401);
+                $isRevoked = DB::table('oauth_access_tokens')
+                                ->where('id', $token->id)
+                                ->value('revoked');
+
+                if ($isRevoked) {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Unauthenticated.'
+                    ], 401);
+                }
+                $token->revoke();
             }
-
-            $token->revoke();
 
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Logged out successfully.'
             ], 200);
-
         } catch (\Throwable $e) {
-            \Log::error('Logout error', ['error' => $e->getMessage()]);
-
+            // \Log::error('Logout error', ['error' => $e->getMessage()]);
             return response()->json([
-                'status'  => 'error',
-                'message' => 'Logout failed. Please try again.'
+                'status' => 'error',
+                'message' => 'Logout failed.'
             ], 500);
         }
     }

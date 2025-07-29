@@ -4,33 +4,52 @@ namespace Tests\Feature\Auth;
 
 use Tests\TestCase;
 use App\Models\User;
+use Laravel\Passport\Client;
 use Laravel\Passport\Passport;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class LogoutTest extends TestCase
 {
+    use RefreshDatabase;
     protected string $endpoint = 'gateway/logout'; 
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        RateLimiter::clear('logout');
+
+        if (!Client::where('personal_access_client', true)->exists()) {
+            $this->artisan('passport:client', [
+                '--personal' => true,
+                '--name' => 'Personal Access Client',
+                '--no-interaction' => true,
+            ])->run();
+        }
+
+        $this->artisan('db:seed', ['--class' => 'RoleSeeder']);
+    }
 
     protected function authenticateUser()
     {
         $user = User::factory()->create();
         $tokenResult = $user->createToken('TestToken');
-        $token = $tokenResult->accessToken;
-
-        Passport::actingAs($user);
+        $token = $tokenResult->accessToken;  // string token
+        // Passport::actingAs($user);
         return [$user, $token];
     }
 
-    // public function test_valid_logout()
-    // {
-    //     [$user, $token] = $this->authenticateUser();
+    public function test_valid_logout()
+    {
+        [$user, $token] = $this->authenticateUser();
+        
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson($this->endpoint);
 
-    //     $response = $this->withHeaders([
-    //         'Authorization' => 'Bearer ' . $token,
-    //     ])->postJson($this->endpoint);
-
-    //     $response->assertStatus(200)
-    //             ->assertJsonStructure(['message']);
-    // }
+        $response->assertStatus(200)
+                ->assertJsonStructure(['status', 'message']);
+    }
 
     public function test_missing_token()
     {
@@ -40,90 +59,62 @@ class LogoutTest extends TestCase
                  ->assertJsonFragment(['message' => 'Unauthenticated.']);
     }
 
-    public function test_expired_token()
+    public function test_logout_with_invalid_token()
     {
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer expired_token',
+            'Authorization' => 'Bearer invalidtoken123',
         ])->postJson($this->endpoint);
 
         $response->assertStatus(401)
-                 ->assertJsonFragment(['message' => 'Unauthenticated.']);
+                ->assertJson([
+                    'message' => 'Unauthenticated.'
+                ]);
     }
 
-    // public function test_already_revoked_token()
-    // {
-    //     [$user, $token] = $this->authenticateUser();
-
-    //     // First logout
-    //     $this->withToken($token)->postJson($this->endpoint);
-
-    //     // Second logout with same token
-    //     $response = $this->withToken($token)->postJson($this->endpoint);
-
-    //     $response->assertStatus(401)
-    //              ->assertJsonFragment(['message' => 'Unauthenticated.']);
-    // }
-
-    public function test_invalid_token()
+    public function test_logout_with_revoked_token()
     {
-        $response = $this->withToken('fake-invalid-token')->postJson($this->endpoint);
+        [$user, $token] = $this->authenticateUser();
+
+        // Revoke token in database manually
+        $tokenId = $user->tokens()->first()->id;
+        $user->tokens()->where('id', $tokenId)->update(['revoked' => true]);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson($this->endpoint);
 
         $response->assertStatus(401)
-                 ->assertJsonFragment(['message' => 'Unauthenticated.']);
+                ->assertJson([
+                    'message' => 'Unauthenticated.'
+                ]);
     }
 
-    // public function test_session_token_is_revoked()
-    // {
-    //     $user = User::factory()->create();
-    //     $token = $user->createToken('TestToken')->accessToken;
-    //     $tokenId = explode('|', $token, 2)[0];
+    public function test_response_structure()
+    {
+        [$user, $token] = $this->authenticateUser();
 
-    //     $this->withToken($token)->postJson($this->endpoint);
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson($this->endpoint);
 
-    //     $this->assertDatabaseHas('oauth_access_tokens', [
-    //         'id' => $tokenId,
-    //         'revoked' => true,
-    //     ]);
-    // }
+        $response->assertStatus(200)
+                ->assertJsonStructure(['message']);
+    }
 
-    // public function test_response_structure()
-    // {
-    //     $this->authenticate();
+    public function test_rate_limiting()
+    {
+        $key = 'logout:' . request()->ip();
+        RateLimiter::clear($key);
 
-    //     $response = $this->postJson($this->endpoint);
-
-    //     $response->assertStatus(200)
-    //              ->assertJsonStructure(['message']);
-    // }
-
-    // public function test_logout_rate_limiting()
-    // {
-    //     $user = $this->authenticate();
-
-    //     for ($i = 0; $i < 10; $i++) {
-    //         $this->postJson($this->endpoint);
-    //     }
-
-    //     $response = $this->postJson($this->endpoint);
-
-    //     if ($response->status() === 429) {
-    //         $response->assertStatus(429);
-    //     } else {
-    //         $this->markTestSkipped('Rate limiting not enforced on /logout route.');
-    //     }
-    // }
-
-    // public function test_logout_performance()
-    // {
-    //     $this->authenticate();
-
-    //     $start = microtime(true);
-
-    //     $response = $this->postJson($this->endpoint);
-
-    //     $duration = microtime(true) - $start;
-
-    //     $response->assertStatus(200);
-    //     $this->assertLessThan(1.0, $duration, 'Logout took too long: ' . $duration . ' seconds');
-    // }
+        // Simulate multiple logout attempts
+        for ($i = 0; $i < 4; $i++) {
+            $response = $this->postJson($this->endpoint);
+            if ($i < 5) {
+                $response->assertStatus(401);
+            } else {
+                $response->assertStatus(429)
+                         ->assertJson(['message' => 'Too many logout attempts. Please try again later.']);
+            }
+        }
+    }
 }

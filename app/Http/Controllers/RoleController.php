@@ -14,7 +14,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RoleController extends Controller
 {
@@ -25,14 +24,14 @@ class RoleController extends Controller
     {
         try {
             $validated = $request->validate([
-                'filter'    => ['nullable', 'array'],
+                'search'    => ['nullable', 'array'],
                 'orderBy'   => ['nullable', 'in:id,name,slug'],
                 'sortedBy'  => ['nullable', 'in:asc,desc'],
                 'limit'     => ['nullable', 'integer', 'min:1'],
                 'skip'      => ['nullable', 'integer', 'min:0'],
             ]);
 
-            $filter = $validated['filter'] ?? [];
+            $filter = $validated['search'] ?? [];
 
             $query = Role::with('permissions')
             ->when(!empty($filter), function ($q) use ($filter) {

@@ -52,28 +52,29 @@ class MeTest extends TestCase
         $response->assertJsonStructure(['status', 'message', 'data']);
     }
 
-    public function test_no_token_returns_401() 
+    public function test_no_token() 
     {
         $response = $this->postJson($this->endpoint);
         $response->assertStatus(401);
     }
 
-    public function test_expired_token_returns_401() 
+    public function test_expired_token() 
     {
         $expiredToken = 'expired_token_here'; // simulate expired
         $response = $this->withHeader('Authorization', "Bearer $expiredToken")->postJson($this->endpoint);
         $response->assertStatus(401);
     }
 
-    public function test_invalid_token_returns_401() 
+    public function test_invalid_token() 
     {
         $response = $this->withHeader('Authorization', 'Bearer invalidtoken')->postJson($this->endpoint);
         $response->assertStatus(401);
     }
 
-    public function test_revoked_token_returns_401() 
+    public function test_revoked_token() 
     {
         $user = User::factory()->create();
+        $this->artisan('db:seed', ['--class' => 'PermissionSeeder']);
 
         // Create access token
         $tokenResult = $user->createToken('TestToken');
@@ -84,6 +85,36 @@ class MeTest extends TestCase
 
         $response = $this->withHeader('Authorization', "Bearer $accessToken")->postJson($this->endpoint);
         $response->assertStatus(401);
+    }
+
+    public function test_response_structure()
+    {
+        [$user, $oldPassword, $token] = $this->authenticateUser();
+
+        $response = $this->withHeader('Authorization', "Bearer $token")->postJson($this->endpoint);
+        $response->assertStatus(200)
+                ->assertJsonStructure([
+                    'status',
+                    'message',
+                    'data' => [
+                        'slug',
+                        'name',
+                        'email',
+                        'role',
+                        'permissions',
+                    ],
+                ])
+                ->assertJson([
+                    'status' => 'success',
+                    'message' => 'Your information.',
+                    'data' => [
+                        'slug' => $user->slug,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role->name ?? null,
+                        'permissions' => $user->role->permissions->pluck('name')->toArray() ?? [],
+                    ],
+                ]);
     }
 
     public function test_sql_injection_token_rejected() 

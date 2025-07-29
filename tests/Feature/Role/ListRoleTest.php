@@ -69,7 +69,7 @@ class ListRoleTest extends TestCase
         [$user, $token] = $this->authenticateUserWithPermission();
 
         $response = $this->withToken($token)->postJson($this->endpoint, [
-            'filter' => ['name' => 'Admin']
+            'search' => ['name' => 'Admin']
         ]);
 
         $response->assertStatus(200)
@@ -82,7 +82,7 @@ class ListRoleTest extends TestCase
         [$user, $token] = $this->authenticateUserWithPermission();
 
         $response = $this->withToken($token)->postJson($this->endpoint, [
-            'filter' => ['name' => 'super admin']
+            'search' => ['name' => 'super admin']
         ]);
 
         $response->assertStatus(200)
@@ -94,7 +94,7 @@ class ListRoleTest extends TestCase
         [$user, $token] = $this->authenticateUserWithPermission();
 
         $response = $this->withToken($token)->postJson($this->endpoint, [
-            'filter' => ['name' => 'NonExistent']
+            'search' => ['name' => 'NonExistent']
         ]);
 
         $response->assertStatus(200)
@@ -144,7 +144,7 @@ class ListRoleTest extends TestCase
         [$user, $token] = $this->authenticateUserWithPermission();
 
         $response = $this->withToken($token)->postJson($this->endpoint, [
-            'filter' => ['name' => "' OR 1=1 --"]
+            'search' => ['name' => "' OR 1=1 --"]
         ]);
 
         $response->assertStatus(200);
