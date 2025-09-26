@@ -4,7 +4,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
+})->name('home');
+
+// Documentation route
+Route::get('/docs', function () {
+    return redirect('/api/documentation'); // Redirect to your API documentation
 });
 
 // Health check endpoints

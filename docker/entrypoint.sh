@@ -30,9 +30,9 @@ mkdir -p /var/www/storage/framework/sessions
 mkdir -p /var/www/storage/framework/views
 mkdir -p /var/www/storage/framework/cache
 
-# Run Passport migrations
+# Run Passport migrations (ignore if tables already exist)
 echo "Running Passport migrations..."
-php artisan migrate --path=vendor/laravel/passport/database/migrations --force || echo "Passport migrations failed, continuing..."
+php artisan migrate --path=vendor/laravel/passport/database/migrations --force 2>/dev/null || echo "Passport tables already exist, continuing..."
 
 # Generate Passport keys if they don't exist
 if [ ! -f /var/www/storage/oauth-private.key ]; then
@@ -45,24 +45,11 @@ echo "Optimizing Laravel..."
 php artisan config:cache
 php artisan route:cache
 
-# Set proper permissions
-chown -R www:www /var/www/storage /var/www/bootstrap/cache
-chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
-# Create supervisor log directory
-mkdir -p /var/log/supervisor
-
-echo "Starting services..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
-
-# Clear and cache configuration
-echo "Optimizing Laravel..."
-php artisan config:cache
-php artisan route:cache
-
-# Set proper permissions
-chown -R www:www /var/www/storage /var/www/bootstrap/cache
-chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+# Set proper permissions (run as root)
+if [ "$(id -u)" = "0" ]; then
+    chown -R www:www /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
+    chmod -R 775 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
+fi
 
 # Create supervisor log directory
 mkdir -p /var/log/supervisor

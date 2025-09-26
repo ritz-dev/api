@@ -1,14 +1,53 @@
+# Dependencies
 node_modules
-npm-debug.log
-Dockerfile*
-docker-compose*
-.dockerignore
+npm-debug.log*
+vendor
+
+# Build artifacts (will be copied from node-builder stage)
+public/build
+public/hot
+public/storage
+
+# Development files
+.env*
 .git
 .gitignore
-README.md
-.nyc_output
-coverage
-.nyc_output
-.coverage
-*.md
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel specific
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+bootstrap/cache/*
+
+# Testing
+.phpunit.result.cache
 tests
+phpunit.xml
+
+# Documentation
+*.md
+docs/
+
+# Cache files
+.npm
+.cache
+
+# Runtime files
+*.pid
+*.seed
+*.log
