@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'SMS API - Enterprise Messaging Platform')
+@section('title', 'SMS API - School Management System Platform')
 
 @section('content')
 <!-- Hero Section -->
@@ -36,14 +36,14 @@
                 SMS API
             </h1>
             <div class="text-4xl md:text-6xl font-bold text-white/80 tracking-wide">
-                <span class="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Enterprise Platform</span>
+                <span class="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">School Management System</span>
             </div>
         </div>
         
         <!-- Subtitle -->
         <p class="text-xl md:text-2xl text-white/70 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-            Power your applications with our <span class="text-white font-semibold">military-grade SMS infrastructure</span><br>
-            Trusted by <span class="text-blue-300 font-bold">10,000+</span> developers worldwide
+            Comprehensive <span class="text-white font-semibold">School Management System API</span> platform<br>
+            Manage <span class="text-blue-300 font-bold">Students, Teachers & Academic</span> operations seamlessly
         </p>
         
         <!-- Action Cards -->
@@ -504,99 +504,99 @@
                 Explore Our API
             </h2>
             <p class="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-                Comprehensive SMS API with <span class="text-white font-semibold">RESTful endpoints</span> for all your messaging needs
+                Complete School Management System API with <span class="text-white font-semibold">RESTful endpoints</span> for students, teachers, and academic management
             </p>
         </div>
         
         <!-- API Endpoints Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            <!-- Send SMS Endpoint -->
+            <!-- Students Management -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
                     <div class="flex items-center justify-between mb-6">
                         <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                             </svg>
                         </div>
                         <span class="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-sm font-bold">POST</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Send SMS</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Students</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/sms/send
+                        /api/user/students
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Send single or bulk SMS messages with delivery tracking and status callbacks.
+                        Manage student records, enrollments, and personal information with full CRUD operations.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                            Authentication required
+                            Student enrollment
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                            Rate limit: 1000/min
+                            Profile management
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Get Message Status -->
+            <!-- Teachers Management -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
                     <div class="flex items-center justify-between mb-6">
                         <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
                         <span class="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-bold">GET</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Message Status</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Teachers</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/sms/{id}/status
+                        /api/user/teachers
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Retrieve delivery status and detailed information for any message.
+                        Teacher profiles, subjects, schedules and performance tracking with dashboard analytics.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                            Real-time tracking
+                            Schedule management
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-                            Webhook support
+                            Subject assignments
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Account Balance -->
+            <!-- Academic Management -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
                     <div class="flex items-center justify-between mb-6">
                         <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                             </svg>
                         </div>
                         <span class="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-bold">GET</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Account Balance</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Academic</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/account/balance
+                        /api/academic/classes
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Check your account balance and usage statistics in real-time.
+                        Academic year, classes, sections, subjects, schedules and student enrollment management.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-                            Usage analytics
+                            Class sections
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-pink-400 rounded-full mr-2"></span>
@@ -606,72 +606,71 @@
                 </div>
             </div>
             
-            <!-- Webhook Management -->
+            <!-- Attendance Management -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
                     <div class="flex items-center justify-between mb-6">
                         <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                         </div>
                         <span class="px-3 py-1 bg-orange-500/20 text-orange-300 rounded-full text-sm font-bold">POST</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Webhooks</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Attendance</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/webhooks
+                        /api/academic/attendance
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Configure webhooks for real-time delivery status notifications.
+                        Track student attendance with daily reports, analytics and automated notifications.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
-                            Event-driven
+                            Daily tracking
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
-                            Secure delivery
+                            Automated reports
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Message Templates -->
+            <!-- Schedules Management -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
                     <div class="flex items-center justify-between mb-6">
                         <div class="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                         </div>
                         <span class="px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full text-sm font-bold">GET</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Templates</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Schedules</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/templates
+                        /api/academic/weekly-schedule
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Manage reusable message templates for consistent branding.
+                        Manage weekly and daily class schedules, time slots and teacher assignments.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-cyan-400 rounded-full mr-2"></span>
-                            Variable support
+                            Weekly planning
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-                            Multi-language
+                            Time slot management
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Analytics & Reports -->
+            <!-- Student Grades -->
             <div class="group relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl">
                 <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative">
@@ -683,21 +682,21 @@
                         </div>
                         <span class="px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full text-sm font-bold">GET</span>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-3">Analytics</h3>
+                    <h3 class="text-2xl font-black text-white mb-3">Grades</h3>
                     <p class="text-white/60 mb-4 text-sm font-mono bg-black/20 rounded-lg p-3">
-                        /api/v1/analytics
+                        /api/academic/grades
                     </p>
                     <p class="text-white/80 leading-relaxed mb-6">
-                        Detailed analytics and reporting for message performance insights.
+                        Student grade management with report cards, analytics and performance tracking.
                     </p>
                     <div class="space-y-2">
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
-                            Custom reports
+                            Report cards
                         </div>
                         <div class="flex items-center text-sm text-white/70">
                             <span class="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-                            Export options
+                            Performance analytics
                         </div>
                     </div>
                 </div>
@@ -762,13 +761,13 @@
                     </div>
                     <h3 class="text-2xl font-black text-slate-900 mb-4">🚀 Quick Start</h3>
                     <p class="text-slate-600 mb-6 leading-relaxed">
-                        Get up and running in minutes with our step-by-step integration guide and sample code.
+                        Get up and running in minutes with our comprehensive School Management System API integration guide.
                     </p>
                     <div class="bg-slate-900 rounded-xl p-4 mb-6">
                         <code class="text-green-400 text-sm font-mono">
-                            curl -X POST https://api.sms.com/v1/send<br/>
-                            -H "Authorization: Bearer {key}"<br/>
-                            -d '{"to":"+1234567890","message":"Hello!"}'
+                            curl -X POST /api/user/students<br/>
+                            -H "Authorization: Bearer {token}"<br/>
+                            -d '{"name":"John Doe","email":"john@school.edu"}'
                         </code>
                     </div>
                     <a href="/docs/quickstart" class="inline-flex items-center text-green-600 font-semibold hover:text-green-700 transition-colors">
@@ -856,49 +855,90 @@
         <!-- Interactive Code Example -->
         <div class="bg-gradient-to-br from-slate-900 to-blue-900 rounded-3xl p-12 shadow-2xl border border-slate-700">
             <div class="text-center mb-8">
-                <h3 class="text-3xl font-black text-white mb-4">Try it Live</h3>
-                <p class="text-white/70 text-lg">Interactive code example - modify and test in real-time</p>
+                <h3 class="text-3xl font-black text-white mb-4">🧪 API Endpoint Tester</h3>
+                <p class="text-white/70 text-lg">Test real School Management System endpoints in real-time</p>
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Code Example -->
+                <!-- API Tester -->
                 <div class="bg-black/50 rounded-2xl p-6 border border-white/10">
                     <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-white font-bold">Send SMS Example</h4>
+                        <h4 class="text-white font-bold">Student Enrollment API</h4>
                         <div class="flex space-x-2">
                             <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                             <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
                             <div class="w-3 h-3 bg-green-500 rounded-full"></div>
                         </div>
                     </div>
-                    <pre class="text-green-400 text-sm overflow-x-auto"><code>const smsClient = require('@sms-api/node');
-
-const client = new smsClient({
-  apiKey: 'your-api-key-here'
-});
-
-// Send SMS
-const result = await client.send({
-  to: '+1234567890',
-  from: 'YourBrand',
-  message: 'Hello from SMS API!',
-  options: {
-    deliveryReport: true,
-    scheduledAt: '2024-01-01T12:00:00Z'
-  }
-});
-
-console.log('Message sent:', result.id);</code></pre>
+                    
+                    <!-- API Endpoint Selector -->
+                    <div class="mb-4">
+                        <label class="text-white/80 text-sm font-semibold block mb-2">Select Endpoint:</label>
+                        <select id="apiEndpoint" class="w-full bg-slate-800 text-white p-3 rounded-lg border border-white/20 focus:border-blue-400 focus:outline-none">
+                            <option value="/api/user/students">GET /api/user/students - List Students</option>
+                            <option value="/api/user/teachers">GET /api/user/teachers - List Teachers</option>
+                            <option value="/api/academic/classes">GET /api/academic/classes - List Classes</option>
+                            <option value="/api/academic/attendance">GET /api/academic/attendance - Student Attendance</option>
+                            <option value="/api/academic/weekly-schedule">GET /api/academic/weekly-schedule - Class Schedules</option>
+                            <option value="/api/academic/grades">GET /api/academic/grades - Student Grades</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Test Button -->
+                    <button onclick="testAPI()" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg mb-4">
+                        🚀 Test API Endpoint
+                    </button>
+                    
+                    <pre class="text-green-400 text-sm overflow-x-auto"><code>// Example: Fetch student list
+fetch('/api/user/students', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token
+  },
+  body: JSON.stringify({
+    limit: 10,
+    status: 'active'
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data));</code></pre>
                 </div>
                 
                 <!-- Response Example -->
                 <div class="bg-black/50 rounded-2xl p-6 border border-white/10">
-                    <h4 class="text-white font-bold mb-4">Response</h4>
-                    <pre class="text-blue-300 text-sm overflow-x-auto"><code>{
-  "success": true,
-  "data": {
-    "id": "msg_1234567890",
-    "to": "+1234567890",
+                    <h4 class="text-white font-bold mb-4">Live Response</h4>
+                    <div id="apiResponse" class="min-h-[200px]">
+                        <pre class="text-blue-300 text-sm overflow-x-auto"><code>{
+  "status": "success",
+  "data": [
+    {
+      "slug": "student_001",
+      "name": "John Smith",
+      "student_number": "STU2024001",
+      "email": "john.smith@school.edu",
+      "class": "Grade 10-A",
+      "status": "active",
+      "enrollment_date": "2024-01-15"
+    },
+    {
+      "slug": "student_002", 
+      "name": "Sarah Johnson",
+      "student_number": "STU2024002",
+      "email": "sarah.johnson@school.edu",
+      "class": "Grade 10-B",
+      "status": "active",
+      "enrollment_date": "2024-01-16"
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "per_page": 10,
+    "total": 250
+  }
+}</code></pre>
+                    </div>
+                </div>
     "from": "YourBrand", 
     "message": "Hello from SMS API!",
     "status": "queued",
@@ -919,6 +959,53 @@ console.log('Message sent:', result.id);</code></pre>
 
 @push('scripts')
 <script>
+// API Testing functionality
+async function testAPI() {
+    const endpoint = document.getElementById('apiEndpoint').value;
+    const responseContainer = document.getElementById('apiResponse');
+    
+    // Show loading state
+    responseContainer.innerHTML = `
+        <div class="flex items-center justify-center h-32">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+            <span class="ml-3 text-white/70">Testing endpoint...</span>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                limit: 5,
+                status: 'active'
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Display formatted response
+        responseContainer.innerHTML = `
+            <div class="mb-2">
+                <span class="text-white/60 text-xs">Status: </span>
+                <span class="text-${response.ok ? 'green' : 'red'}-400 font-bold">${response.status} ${response.statusText}</span>
+            </div>
+            <pre class="text-blue-300 text-sm overflow-x-auto"><code>${JSON.stringify(data, null, 2)}</code></pre>
+        `;
+        
+    } catch (error) {
+        responseContainer.innerHTML = `
+            <div class="text-red-400 p-4">
+                <div class="font-bold mb-2">Error:</div>
+                <div class="text-sm">${error.message}</div>
+            </div>
+        `;
+    }
+}
+
 // Fetch and display real-time service status
 async function updateServiceStatus() {
     try {
@@ -926,6 +1013,8 @@ async function updateServiceStatus() {
         const data = await response.json();
         
         const statusContainer = document.getElementById('service-status');
+        if (!statusContainer) return;
+        
         const statusCards = statusContainer.children;
         
         // Update API Status

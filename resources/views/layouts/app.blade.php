@@ -32,7 +32,7 @@
                         </div>
                         <div class="ml-4">
                             <span class="text-2xl font-black text-slate-900">SMS API</span>
-                            <div class="text-xs text-slate-500 font-medium">Enterprise Platform</div>
+                            <div class="text-xs text-slate-500 font-medium">School Management System</div>
                         </div>
                     </div>
                 </div>
