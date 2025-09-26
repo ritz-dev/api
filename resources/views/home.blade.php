@@ -1,68 +1,244 @@
 @extends('layouts.app')
 
-@section('title', 'SMS API - School Management System Platform')
+@section('title', 'SMS Dashboard - School Management System')
 
 @section('content')
-<!-- Hero Section -->
-<div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-    <!-- Dynamic Background -->
-    <div class="absolute inset-0">
-        <!-- Animated Grid -->
-        <div class="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]"></div>
-        
-        <!-- Floating Orbs -->
-        <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
-        <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl animate-pulse animation-delay-4000"></div>
-        
-        <!-- Gradient Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30"></div>
+<!-- Dashboard Header -->
+<div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">SMS Dashboard</h1>
+                <p class="text-blue-100">School Management System Overview</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-blue-100">Current Time</div>
+                <div class="text-lg font-semibold" id="currentTime"></div>
+            </div>
+        </div>
     </div>
-    
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <!-- Status Badge -->
-        <div class="inline-flex items-center px-6 py-3 mb-8 bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-xl rounded-full border border-white/20 shadow-2xl">
-            <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
-                <span class="text-white/90 font-medium">🟢 Live & Operational</span>
-                <div class="w-1 h-1 bg-white/40 rounded-full"></div>
-                <span class="text-green-300 font-semibold">99.9% Uptime</span>
-            </div>
-        </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Main Heading with Animation -->
-        <div class="mb-8">
-            <h1 class="text-6xl md:text-8xl font-black mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent leading-none tracking-tight">
-                SMS API
-            </h1>
-            <div class="text-4xl md:text-6xl font-bold text-white/80 tracking-wide">
-                <span class="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">School Management System</span>
-            </div>
-        </div>
-        
-        <!-- Subtitle -->
-        <p class="text-xl md:text-2xl text-white/70 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-            Comprehensive <span class="text-white font-semibold">School Management System API</span> platform<br>
-            Manage <span class="text-blue-300 font-bold">Students, Teachers & Academic</span> operations seamlessly
-        </p>
-        
-        <!-- Action Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-            <!-- API Documentation Card -->
-            <a href="/docs" class="group relative p-8 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-white/40 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl shadow-xl">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div class="relative z-10">
-                    <div class="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+        <!-- System Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- API Status -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
                     </div>
-                    <h3 class="text-2xl font-bold text-white mb-3">📚 API Docs</h3>
-                    <p class="text-white/60 mb-4">Complete integration guide with code examples</p>
-                    <div class="flex items-center justify-center text-blue-300 font-semibold group-hover:text-blue-200 transition-colors">
-                        Get Started
-                        <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">API Status</h3>
+                        <p class="text-sm text-green-600 font-medium" id="apiStatus">Operational</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Status -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Database</h3>
+                        <p class="text-sm text-blue-600 font-medium" id="dbStatus">Connected</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Count -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Services</h3>
+                        <p class="text-sm text-purple-600 font-medium">4 Active</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Endpoints</h3>
+                        <p class="text-sm text-orange-600 font-medium">50+ Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Students Management -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Students</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Manage student records, enrollment, and profiles</p>
+                    <button onclick="testEndpoint('/gateway/user/students')" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                        Test API
+                    </button>
+                </div>
+            </div>
+
+            <!-- Teachers Management -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Teachers</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Teacher profiles, subjects and schedules</p>
+                    <button onclick="testEndpoint('/gateway/user/teachers')" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
+                        Test API
+                    </button>
+                </div>
+            </div>
+
+            <!-- Academic Management -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300">
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Academic</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Classes, sections, schedules and grades</p>
+                    <button onclick="testEndpoint('/gateway/academic/classes')" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors duration-200 text-sm font-medium">
+                        Test API
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Testing Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">API Endpoint Tester</h2>
+                <p class="text-gray-600 text-sm">Test School Management System API endpoints in real-time</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Endpoint Selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Endpoint</label>
+                        <select id="endpointSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="/gateway/health">GET /gateway/health - System Health</option>
+                            <option value="/gateway/ping">GET /gateway/ping - API Ping</option>
+                            <option value="/gateway/test-academic-health">GET /gateway/test-academic-health - Academic Service</option>
+                            <option value="/gateway/test-teacher-health">GET /gateway/test-teacher-health - Teacher Service</option>
+                        </select>
+                        <button onclick="testSelectedEndpoint()" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                            🚀 Test Endpoint
+                        </button>
+                    </div>
+                    
+                    <!-- Response Display -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Response</label>
+                        <div id="responseDisplay" class="bg-gray-50 border border-gray-300 rounded-lg p-4 h-40 overflow-auto font-mono text-sm">
+                            <div class="text-gray-500">Select and test an endpoint to see the response...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Services Overview -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Microservices Architecture</h2>
+                <p class="text-gray-600 text-sm">School Management System distributed services</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- API Gateway -->
+                    <div class="text-center p-4 border border-gray-200 rounded-lg">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-900">API Gateway</h3>
+                        <p class="text-xs text-green-600 mt-1">✓ Online</p>
+                    </div>
+
+                    <!-- User Service -->
+                    <div class="text-center p-4 border border-gray-200 rounded-lg">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-900">User Service</h3>
+                        <p class="text-xs text-green-600 mt-1">✓ Online</p>
+                    </div>
+
+                    <!-- Academic Service -->
+                    <div class="text-center p-4 border border-gray-200 rounded-lg">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-900">Academic Service</h3>
+                        <p class="text-xs text-green-600 mt-1">✓ Online</p>
+                    </div>
+
+                    <!-- Teacher Service -->
+                    <div class="text-center p-4 border border-gray-200 rounded-lg">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-900">Teacher Service</h3>
+                        <p class="text-xs text-green-600 mt-1">✓ Online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                         </svg>
                     </div>
                 </div>
@@ -959,103 +1135,119 @@ fetch('/api/user/students', {
 
 @push('scripts')
 <script>
-// API Testing functionality
-async function testAPI() {
-    const endpoint = document.getElementById('apiEndpoint').value;
-    const responseContainer = document.getElementById('apiResponse');
-    
-    // Show loading state
-    responseContainer.innerHTML = `
-        <div class="flex items-center justify-center h-32">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <span class="ml-3 text-white/70">Testing endpoint...</span>
-        </div>
-    `;
+// Update current time
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('currentTime').textContent = timeString;
+}
+
+// Test individual endpoint
+async function testEndpoint(endpoint) {
+    const method = endpoint.includes('students') || endpoint.includes('teachers') ? 'POST' : 'GET';
     
     try {
         const response = await fetch(endpoint, {
-            method: 'POST',
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                limit: 5,
-                status: 'active'
-            })
+            }
+        });
+        
+        const data = await response.json();
+        alert(`${endpoint}\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`);
+        
+    } catch (error) {
+        alert(`Error testing ${endpoint}: ${error.message}`);
+    }
+}
+
+// Test selected endpoint
+async function testSelectedEndpoint() {
+    const endpoint = document.getElementById('endpointSelect').value;
+    const responseDisplay = document.getElementById('responseDisplay');
+    
+    // Show loading
+    responseDisplay.innerHTML = '<div class="text-blue-600">Testing endpoint...</div>';
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
         });
         
         const data = await response.json();
         
-        // Display formatted response
-        responseContainer.innerHTML = `
-            <div class="mb-2">
-                <span class="text-white/60 text-xs">Status: </span>
-                <span class="text-${response.ok ? 'green' : 'red'}-400 font-bold">${response.status} ${response.statusText}</span>
+        responseDisplay.innerHTML = `
+            <div class="mb-2 text-sm">
+                <span class="font-medium">Status:</span> 
+                <span class="text-${response.ok ? 'green' : 'red'}-600">${response.status} ${response.statusText}</span>
             </div>
-            <pre class="text-blue-300 text-sm overflow-x-auto"><code>${JSON.stringify(data, null, 2)}</code></pre>
+            <pre class="text-xs text-gray-700 whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>
         `;
         
     } catch (error) {
-        responseContainer.innerHTML = `
-            <div class="text-red-400 p-4">
-                <div class="font-bold mb-2">Error:</div>
+        responseDisplay.innerHTML = `
+            <div class="text-red-600">
+                <div class="font-medium">Error:</div>
                 <div class="text-sm">${error.message}</div>
             </div>
         `;
     }
 }
 
-// Fetch and display real-time service status
-async function updateServiceStatus() {
+// Update system status
+async function updateSystemStatus() {
     try {
-        const response = await fetch('/health');
+        const response = await fetch('/gateway/health');
         const data = await response.json();
         
-        const statusContainer = document.getElementById('service-status');
-        if (!statusContainer) return;
-        
-        const statusCards = statusContainer.children;
-        
-        // Update API Status
-        const apiCard = statusCards[0];
-        const apiIcon = apiCard.querySelector('div div');
-        const apiText = apiCard.querySelector('p');
+        // Update API status
+        const apiStatus = document.getElementById('apiStatus');
+        const dbStatus = document.getElementById('dbStatus');
         
         if (data.status === 'ok') {
-            apiIcon.className = 'w-3 h-3 bg-green-400 rounded-full';
-            apiText.textContent = 'Operational';
-            apiText.className = 'text-green-600 font-semibold';
+            apiStatus.textContent = 'Operational';
+            apiStatus.className = 'text-sm text-green-600 font-medium';
         } else {
-            apiIcon.className = 'w-3 h-3 bg-red-400 rounded-full';
-            apiText.textContent = 'Issues Detected';
-            apiText.className = 'text-red-600 font-semibold';
+            apiStatus.textContent = 'Issues';
+            apiStatus.className = 'text-sm text-red-600 font-medium';
         }
         
-        // Update Database Status
-        const dbCard = statusCards[1];
-        const dbIcon = dbCard.querySelector('div div');
-        const dbText = dbCard.querySelector('p');
-        
         if (data.database === 'connected') {
-            dbIcon.className = 'w-3 h-3 bg-green-400 rounded-full';
-            dbText.textContent = 'Connected';
-            dbText.className = 'text-green-600 font-semibold';
+            dbStatus.textContent = 'Connected';
+            dbStatus.className = 'text-sm text-blue-600 font-medium';
         } else {
-            dbIcon.className = 'w-3 h-3 bg-red-400 rounded-full';
-            dbText.textContent = 'Disconnected';
-            dbText.className = 'text-red-600 font-semibold';
+            dbStatus.textContent = 'Disconnected';
+            dbStatus.className = 'text-sm text-red-600 font-medium';
         }
         
     } catch (error) {
-        console.error('Failed to fetch service status:', error);
+        console.error('Failed to fetch system status:', error);
     }
 }
 
-// Update status on page load
-document.addEventListener('DOMContentLoaded', updateServiceStatus);
-
-// Update status every 30 seconds
-setInterval(updateServiceStatus, 30000);
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    updateTime();
+    updateSystemStatus();
+    
+    // Update time every minute
+    setInterval(updateTime, 60000);
+    
+    // Update system status every 30 seconds
+    setInterval(updateSystemStatus, 30000);
+});
 </script>
 @endpush
