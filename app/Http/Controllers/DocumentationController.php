@@ -24,6 +24,8 @@ class DocumentationController extends Controller
             'ADVANCED_CONFIGURATION.md' => 'Advanced Configuration',
             'K8S_DEPLOYMENT_GUIDE.md' => 'Kubernetes Deployment Guide',
             'KUBECONFIG_SETUP_README.md' => 'Kubeconfig Setup',
+            'TERRAFORM_USER_GUIDE.md' => '🚀 Terraform Infrastructure Guide',
+            'TERRAFORM_QUICK_REFERENCE.md' => '⚡ Terraform Quick Reference',
         ];
 
         $docsFromFolder = [
@@ -70,6 +72,8 @@ class DocumentationController extends Controller
             'ADVANCED_CONFIGURATION.md' => 'Advanced Configuration',
             'K8S_DEPLOYMENT_GUIDE.md' => 'Kubernetes Deployment Guide',
             'KUBECONFIG_SETUP_README.md' => 'Kubeconfig Setup README',
+            'TERRAFORM_USER_GUIDE.md' => 'Terraform Infrastructure - Complete User Guide',
+            'TERRAFORM_QUICK_REFERENCE.md' => 'Terraform Quick Reference Guide',
             'CI-CD-Developer-Guide.md' => 'CI/CD Developer Guide',
             'DevOps-Kubernetes-Guide.md' => 'DevOps Kubernetes Guide',
             'GitHub-to-Kubernetes-Deployment-Guide.md' => 'GitHub to Kubernetes Deployment Guide',

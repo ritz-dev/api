@@ -67,8 +67,8 @@ RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
 # Copy application code (excluding node_modules and build artifacts)
 COPY --chown=www:www sms_app/api/ .
 
-# Copy documentation files from parent directory
-COPY --chown=www:www README.md DOC_INDEX.md QUICK_START_GUIDE.md TROUBLESHOOTING_GUIDE.md ADVANCED_CONFIGURATION.md K8S_DEPLOYMENT_GUIDE.md KUBECONFIG_SETUP_README.md docs ./docs_root/
+# Copy documentation files from parent directory to public docs
+COPY --chown=www:www README.md DOC_INDEX.md QUICK_START_GUIDE.md TROUBLESHOOTING_GUIDE.md ADVANCED_CONFIGURATION.md K8S_DEPLOYMENT_GUIDE.md KUBECONFIG_SETUP_README.md docs ./public/docs/
 
 # Copy built assets from node-builder stage
 COPY --from=node-builder --chown=www:www /app/public/build ./public/build
@@ -105,7 +105,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health || exit 1
+    CMD curl -f http://localhost/gateway/health || exit 1
 
 # Expose port
 EXPOSE 80
