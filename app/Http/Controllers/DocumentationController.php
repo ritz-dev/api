@@ -27,11 +27,11 @@ class DocumentationController extends Controller
         ];
 
         $docsFromFolder = [
-            'docs/CI-CD-Developer-Guide.md' => 'CI/CD Developer Guide',
-            'docs/DevOps-Kubernetes-Guide.md' => 'DevOps Kubernetes Guide',
-            'docs/GitHub-to-Kubernetes-Deployment-Guide.md' => 'GitHub to K8s Deployment',
-            'docs/Kubernetes-Developer-Guide.md' => 'Kubernetes Developer Guide',
-            'docs/Laravel-Kubernetes-Troubleshooting-Guide.md' => 'Laravel K8s Troubleshooting',
+            'CI-CD-Developer-Guide.md' => 'CI/CD Developer Guide',
+            'DevOps-Kubernetes-Guide.md' => 'DevOps Kubernetes Guide',
+            'GitHub-to-Kubernetes-Deployment-Guide.md' => 'GitHub to K8s Deployment',
+            'Kubernetes-Developer-Guide.md' => 'Kubernetes Developer Guide',
+            'Laravel-Kubernetes-Troubleshooting-Guide.md' => 'Laravel K8s Troubleshooting',
         ];
 
         return view('documentation.index', [
@@ -70,11 +70,11 @@ class DocumentationController extends Controller
             'ADVANCED_CONFIGURATION.md' => 'Advanced Configuration',
             'K8S_DEPLOYMENT_GUIDE.md' => 'Kubernetes Deployment Guide',
             'KUBECONFIG_SETUP_README.md' => 'Kubeconfig Setup README',
-            'docs/CI-CD-Developer-Guide.md' => 'CI/CD Developer Guide',
-            'docs/DevOps-Kubernetes-Guide.md' => 'DevOps Kubernetes Guide',
-            'docs/GitHub-to-Kubernetes-Deployment-Guide.md' => 'GitHub to Kubernetes Deployment Guide',
-            'docs/Kubernetes-Developer-Guide.md' => 'Kubernetes Developer Guide',
-            'docs/Laravel-Kubernetes-Troubleshooting-Guide.md' => 'Laravel Kubernetes Troubleshooting Guide',
+            'CI-CD-Developer-Guide.md' => 'CI/CD Developer Guide',
+            'DevOps-Kubernetes-Guide.md' => 'DevOps Kubernetes Guide',
+            'GitHub-to-Kubernetes-Deployment-Guide.md' => 'GitHub to Kubernetes Deployment Guide',
+            'Kubernetes-Developer-Guide.md' => 'Kubernetes Developer Guide',
+            'Laravel-Kubernetes-Troubleshooting-Guide.md' => 'Laravel Kubernetes Troubleshooting Guide',
         ];
 
         return $titles[$filename] ?? ucfirst(str_replace(['.md', '-'], [' Documentation', ' '], basename($filename)));
