@@ -5,8 +5,12 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DocumentationController;
 
 Route::get('/', function () {
-    return view('apitester');
+    return view('home');
 })->name('home');
+
+// API Tester routes
+Route::get('/api-tester', [App\Http\Controllers\ApiTesterController::class, 'index'])->name('api.tester');
+Route::post('/api-tester/test', [App\Http\Controllers\ApiTesterController::class, 'test'])->name('api.test');
 
 // Documentation routes
 Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index');
