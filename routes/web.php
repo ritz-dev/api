@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DocumentationController;
 
 Route::get('/', function () {
-    return view('home');
+    return view('apitester');
 })->name('home');
 
 // Documentation routes
