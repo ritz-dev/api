@@ -5,13 +5,13 @@ FROM node:18-alpine AS node-builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY sms_app/api/package.json sms_app/api/package-lock.json* ./
 
 # Install Node.js dependencies (including dev dependencies for build)
 RUN npm ci
 
 # Copy source files for asset building
-COPY . .
+COPY sms_app/api/ .
 
 # Build production assets
 RUN npm run build
@@ -59,19 +59,22 @@ RUN addgroup -g 1000 www && \
 WORKDIR /var/www
 
 # Copy composer files
-COPY composer.json composer.lock ./
+COPY sms_app/api/composer.json sms_app/api/composer.lock ./
 
 # Install PHP dependencies (production optimized)
 RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader --no-interaction
 
 # Copy application code (excluding node_modules and build artifacts)
-COPY --chown=www:www . .
+COPY --chown=www:www sms_app/api/ .
+
+# Copy documentation files from parent directory
+COPY --chown=www:www README.md DOC_INDEX.md QUICK_START_GUIDE.md TROUBLESHOOTING_GUIDE.md ADVANCED_CONFIGURATION.md K8S_DEPLOYMENT_GUIDE.md KUBECONFIG_SETUP_README.md docs ./docs_root/
 
 # Copy built assets from node-builder stage
 COPY --from=node-builder --chown=www:www /app/public/build ./public/build
 
 # Generate optimized autoloader
-RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
+RUN git config --global --add safe.directory /var/www && composer dump-autoload --optimize
 
 # Set proper permissions
 RUN chown -R www:www /var/www \
@@ -87,17 +90,17 @@ RUN mkdir -p /var/www/storage/logs \
     && chown -R www:www /var/www/storage
 
 # Create nginx configuration
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/default.conf /etc/nginx/http.d/default.conf
+COPY sms_app/api/docker/nginx.conf /etc/nginx/nginx.conf
+COPY sms_app/api/docker/default.conf /etc/nginx/http.d/default.conf
 
 # Create supervisor configuration
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY sms_app/api/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Create PHP-FPM configuration
-COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY sms_app/api/docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Copy entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY sms_app/api/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Add health check

@@ -2,15 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\DocumentationController;
 
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
-// Documentation route
-Route::get('/docs', function () {
-    return redirect('/api/documentation'); // Redirect to your API documentation
-});
+// Documentation routes
+Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index');
+Route::get('/docs/{file}', [DocumentationController::class, 'show'])->name('docs.show');
 
 // Health check endpoints
 Route::get('/health', function () {
